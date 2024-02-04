@@ -15,4 +15,4 @@ jobs:
 
     - name: Run ShellCheck
       run: |
-        shellcheck terminatedshell.sh && echo -e "\n[!] Everything is OK\n" 
+        shellcheck terminatedshell.sh && echo -e "\n[+] Everything is OK\n" 
