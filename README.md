@@ -129,5 +129,28 @@ cd - && shc -U -f terminatedshell.sh -o terminatedshell || echo -e "\n[x] Someth
 
 This project is under license from Apache License 2.0. For more details, see the [LICENSE](LICENSE.md) file.
 
+## Adding Your Ideas ## 
+
+We welcome your creative ideas and contributions to the development of the Terminated Shell project! If you have suggestions, improvements, or new features, please share them with us. Together, we can make this tool even better.
+
+## How to Propose an Idea
+
+**Create an Issue:** 
+- Go to the [Issues](https://github.com/anonimidin/terminatedshell/issues) section and create a new issue. 
+- Describe your idea, proposal, or problem you are facing.
+
+**Fork the Repository:** 
+- If you have programming skills and want to make changes yourself, fork the repository, make your changes, and submit a pull request to **new-feature** branch.
+
+**Code Style:**
+- Follow the existing code style and conventions used in the project.
+- Consistent coding style makes it easier for everyone to understand and maintain the codebase.
+
+**Share Your Experience:** 
+- If you have experience using Terminated Shell and have noticed something that can be improved, feel free to share your thoughts.
+
+Together, we are creating a powerful tool for Linux and ensuring its continuous improvement.
+
+
 Made by <a href="https://github.com/anonimidin" target="_blank">Anonimidin </a> for red teamers.
 <a href="#top">Back to top</a>
