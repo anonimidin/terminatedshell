@@ -1,3 +1,5 @@
+# Arch based .gitignore
+
 *.tar
 *.tar.*
 *.jar
