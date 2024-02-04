@@ -434,7 +434,6 @@ EOF
 }
 
 motd(){
-    echo -e "[+] Here are all motd files \n" && find / -d motd 
     if [[ $priv_status == "is_su" ]];then
         read -rp "[*] Enter your custom payload to massage of the day" motd_payload
         if [[ -n $motd_payload && -d /etc/update-motd.d/ ]]; then
@@ -484,6 +483,7 @@ echo -e "$tux"
 echo -e '[1] Manage Users [View\Add\Delete] \n[2] Shell Configuration File Persistence [.bashrc|.zshrc] \n[3] Scheduler Persistence'
 echo -e '[4] Hooks\n[5] Systemd\n[6] Message of the Day'  
 echo -e '\n[0] Exit\n'
+
 if (( $(tput cols) < 155 )); then
     echo -e "\n[*] Your width of terminal is \"$(tput cols)\"" 
     echo -e "[*] For best reading performance columns must be 155+\n"

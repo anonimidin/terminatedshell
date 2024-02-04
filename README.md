@@ -37,26 +37,56 @@ Terminated Shell script – a tool crafted for Linux persistence. Dive into the 
 Use this script responsibly and for <b>EDUCATIONAL PURPOSES</b> only. The script author and contributors are not responsible for any misuse or damage caused by its use.
 Keep persisting in the Linux realm, and may your shells be ever terminated if u use this script for bad purpose! 💀🐧
 
-## :sparkles: Features ##
+## :sparkles: About ##
 
-- **User Management**
-  - View, add, or delete users. Elevate your control with superuser privileges.
+**Global Variables:**
 
-- **Shell Configuration Persistence**
-  - Personalize your shell configuration (~/.bashrc or ~/.zshrc) effortlessly.
+- `current_shell`: Stores the current shell of the user.
+- `random`: Generates a random number, used in various places.
 
-- **Scheduler Persistence**
-  - Schedule tasks using at or cron. Inject your payload into the Linux timeline.
+**Function: priv_check:**
 
-- **Hooks Playground**
-  - Apt-get Pre-Invoke hook with custom payload.
-  - Add custom payloads to pre-commit hooks and Git config files.
+- Checks whether the script is running with superuser (root) privileges.
+- If not running as root, asks the user whether to continue without superuser privileges.
 
-- **System Daemon Unleashed**
-  - Master the art of systemd units for both system and user levels. Inject your custom payloads into the heart of Linux.
+**Function: sched_persis:**
 
-- **Massage Of The Day**
-  - Surprize with custom payload of logined ssh users.
+- Handles scheduler persistence, allowing the user to choose between at and cron.
+- Provides options to configure persistence with custom IP, port, and payload.
+- Checks for the existence of the `at` command and installs it if necessary.
+
+**Function: shell_persis:**
+
+- Handles shell configuration persistence by adding a custom command to the user's .bashrc or .zshrc file.
+
+**Function: manage_users:**
+
+- Provides options to view all users, add a user, or delete a user.
+- Checks for superuser privileges before executing user management tasks.
+
+**Function: hooks:**
+
+- Provides options for Git hooks and Apt-get hooks.
+- For Git hooks, it allows the user to choose a repository and add a custom payload to the pre-commit hook or the Git config file.
+- For Apt-get hooks, it allows the user to add a custom payload to the pre-invoke command.
+
+**Function: system_deamon:**
+
+- Compares system and user systemd unit paths.
+- Allows the user to add a custom systemd service, either at the system level (with root privileges) or user level.
+
+**Function: motd:**
+
+- Allows the user to add a custom payload to the MOTD file.
+
+**Main Menu: menu:**
+
+- Displays a banner with options for various tasks.
+- Invokes the corresponding function based on the user's choice.
+
+**User Management:**
+
+- View, add, or delete users. Elevate your control with superuser privileges.
 
 ## :white_check_mark: Requirements ##
 
