@@ -37,12 +37,11 @@ Terminated Shell script – a tool crafted for Linux persistence. Dive into the 
 Use this script responsibly and for <b>EDUCATIONAL PURPOSES</b> only. The script author and contributors are not responsible for any misuse or damage caused by its use.
 Keep persisting in the Linux realm, and may your shells be ever terminated if u use this script for bad purpose! 💀🐧
 
-## :sparkles: About ##
+## :sparkles: About Functions ##
 
-**Global Variables:**
+**User Management:**
 
-- `current_shell`: Stores the current shell of the user.
-- `random`: Generates a random number, used in various places.
+- View, add, or delete users. Elevate your control with superuser privileges.
 
 **Function: priv_check:**
 
@@ -79,21 +78,12 @@ Keep persisting in the Linux realm, and may your shells be ever terminated if u 
 
 - Allows the user to add a custom payload to the MOTD file.
 
-**Main Menu: menu:**
-
-- Displays a banner with options for various tasks.
-- Invokes the corresponding function based on the user's choice.
-
-**User Management:**
-
-- View, add, or delete users. Elevate your control with superuser privileges.
-
 ## :white_check_mark: Requirements ##
 
 Before starting, ensure you have the necessary packages installed:
 
 ```bash
-sudo apt-get update -y && sudo apt-get install at socat systemd shred cron coreutils -y && sudo apt autoremove -y && \
+sudo apt-get update -y && sudo apt-get install at socat systemd cron coreutils -y && sudo apt autoremove -y && \
 echo -e "\n[+] All requirements has been installed \n" || echo -e "\n[x] Something went wrong.\n";
 ```
 ## :checkered_flag: Starting ##
@@ -103,27 +93,27 @@ Choose your preferred one-liner to download and run the script:
 - **Using curl**
 
 ``` bash
-curl -LO https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell.sh && \
-chmod +x terminatedshell.sh && ./terminatedshell.sh || echo -e "\n[x] Something went wrong\n";
+curl -LO https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell && \
+chmod +x terminatedshell && ./terminatedshell || echo -e "\n[x] Something went wrong\n";
 ```
 
 - **Using wget**
 
 ``` bash
-wget https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell.sh -O terminatedshell.sh && \
-chmod +x terminatedshell.sh && ./terminatedshell.sh || echo -e "\n[x] Something went wrong\n";
+wget https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell -O terminatedshell && \
+chmod +x terminatedshell && ./terminatedshell || echo -e "\n[x] Something went wrong\n";
 ```
 
 - **Using git**
 ``` bash
 git clone https://github.com/anonimidin/terminatedshell.git && cd terminatedshell && \
-chmod +x terminatedshell.sh && ./terminatedshell.sh || echo -e "\n[x] Something went wrong\n"; 
+chmod +x terminatedshell && ./terminatedshell || echo -e "\n[x] Something went wrong\n"; 
 ```
 - **Download via wget, install shc & compile via shc (SU privileges required)**
 ```bash
-wget https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell.sh -O terminatedshell.sh && chmod +x terminatedshell.sh && \
+wget https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell -O terminatedshell && chmod +x terminatedshell && \
 wget https://github.com/neurobin/shc/archive/refs/tags/4.0.3.tar.gz && tar -xvzf 4.0.3.tar.gz && cd shc-4.0.3 && ./configure && make && sudo make install && \
-cd - && shc -U -f terminatedshell.sh -o terminatedshell || echo -e "\n[x] Something went wrong\n"
+cd - && shc -U -f terminatedshell -o terminatedshell-bin || echo -e "\n[x] Something went wrong\n"
 ```
 ## :memo: License ##
 
@@ -149,8 +139,6 @@ We welcome your creative ideas and contributions to the development of the Termi
 **Share Your Experience:** 
 - If you have experience using Terminated Shell and have noticed something that can be improved, feel free to share your thoughts.
 
-Together, we are creating a powerful tool for Linux and ensuring its continuous improvement.
-
-
 Made by <a href="https://github.com/anonimidin" target="_blank">Anonimidin </a> for red teamers.
+
 <a href="#top">Back to top</a>
