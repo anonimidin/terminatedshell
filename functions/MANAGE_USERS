@@ -1,0 +1,72 @@
+#!/usr/bin/env bash
+
+# --- all vars are exported in main script line:71 --- 
+# shellcheck disable=SC2154
+
+echo -e "${RED}$(line)${EOC}"
+echo -e "${RED}[1]${EOC} - ${RED}View${EOC} all users"
+echo -e "$(line)"
+echo -e "${RED}[2]${EOC} - ${RED}Add${EOC} a user"
+echo -e "$(line)"
+echo -e "${RED}[3]${EOC} - ${RED}Delete${EOC} a user"
+echo -e "$(line)"
+echo -e "${RED}[0]${EOC} - ${RED}Return${EOC} to Menu"
+echo -e "${RED}$(line)${EOC}"
+echo 
+read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' user_choice
+
+while true; 
+do
+case $user_choice in
+1)
+    if [[ -r /etc/passwd ]]; then
+        echo -e "\n${RED}[+]${EOC} All Users:"
+        echo -e "$(line)$(line)"
+        awk -F: '{printf "\033[0;91mUsername\033[0m -> %-15s \033[0;91mUID\033[0m -> %-5s \033[0;91mPath\033[0m -> %s\n", $1, $3, $6}' /etc/passwd
+        echo -e "$(line)$(line)"
+
+        # --- Show users with privileged permissions --- 
+        echo -e "\n${RED}[+]${EOC} Users with Privileged Permissions:"
+        echo -e "$(line)$(line)"
+        awk -F: '$3==0 {printf "\033[0;91m[+]\033[0m Username -> \033[1m%s\033[0m UID -> %s Path -> %s\n", $1, $3, $6}' /etc/passwd
+        echo -e "$(line)$(line)"
+        sleep 0.5 && echo && manage_users
+    else
+        echo -e "\n${RED}[x] /etc/passwd${EOC} file is not readable\n" && manage_users
+    fi;;
+2)  
+    if [[ "$priv_status" == "is_su" ]]; then
+        read -rp $'\033[0;91m[*]\e[0m Enter \033[0;91musername\e[0m for the new user > ' user_new
+        read -rp $'\033[0;91m[*]\e[0m Enter \033[0;91mhome\e[0m directory for the new user [press enter for defult path] > ' user_home
+        if [ -z "$user" ]; then
+            user_home="/home/$user_new"
+        fi;
+        read -rp $'\033[0;91m[*]\e[0m Enter \033[0;91mshell\e[0m for the new user [\033[0;91m bash \e[0m / \033[0;91m zsh \e[0m ] > ' user_shell
+        if [[ "$user_shell" =~ ^[Bb][Aa][Ss][Hh]$ || "$user_shell" =~ ^[Zz][Ss][Hh]$ ]]; then
+            sudo useradd -m -d "$user_home" -s "/bin/$user_shell" "$user_new"
+        else 
+            echo -e "${RED}[x]${EOC} ${RED}$user_shell${EOC} unknown shell.";
+            sleep 0.5 && manage_users
+        fi;
+        echo -e "${RED}[+]${EOC} User ${RED}$user_new${EOC} added with shell ${RED}$user_shell${EOC} in ${RED}$user_home${EOC}\n"
+        sleep 0.5 && manage_users
+    else 
+        echo -e "\n${RED}[x]${EOC} U cannot ${RED}add${EOC} user without SU privileges\n"
+        sleep 0.5 && manage_users
+    fi;;
+3)
+    if [[ "$priv_status" == "is_su" ]]; then
+        read -rp $'\033[0;91m[*]\e[0m Enter username to delete > ' del_user
+        sudo userdel "$del_user" && echo -e "${RED}[+]${EOC} User ${RED}$del_user${EOC} deleted."
+        sleep 0.5 && manage_users
+    else
+        echo -e "\n${RED}[x]${EOC} U cannot delete user without SU privileges\n"
+        sleep 0.5 && manage_users
+    fi;;
+0)
+    sleep 0.5 && break && return 0;;
+*)  
+    echo -e "\n${RED}[x]${EOC} Invalid choice.\n"
+    sleep 0.5 && manage_users
+esac;
+done;

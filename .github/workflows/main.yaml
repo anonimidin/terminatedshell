@@ -1,4 +1,4 @@
-name: Simple CI
+name: Simple CI that checks bash syntax
 
 on:
   push:
@@ -15,4 +15,4 @@ jobs:
 
     - name: Run ShellCheck
       run: |
-        shellcheck terminatedshell.sh && echo -e "\n[+] Everything is OK\n" 
+        shellcheck -x -s bash terminadtedshell && echo -e "\n[+] Everything is OK\n" 

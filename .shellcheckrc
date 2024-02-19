@@ -1,0 +1,2 @@
+# --- Shellcheck config file ---
+external-sources=true
