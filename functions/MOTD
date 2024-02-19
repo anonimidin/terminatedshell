@@ -7,5 +7,5 @@ if [[ -n $motd_payload ]]; then
     echo -e "${RED}[+]${EOC} Payload ${RED}$motd_payload${EOC} has been successfuly added to ${RED}/etc/update-motd.d/20-pers${EOC}" && \
     exit 0 || echo -e "\n${RED}[x]${EOC} Something went wrong while adding payload\n";
 else
-    echo -e "\n${RED}[x]${EOC} Your payload is empty or /etc/update-motd.d not found" && exit 1;
+    echo -e "\n${RED}[x]${EOC} Your payload is ${RED}empty${EOC} or ${RED}/etc/update-motd.d${EOC} not found" && return 0;
 fi
