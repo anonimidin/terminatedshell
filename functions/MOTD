@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-read -rp $'\033[0;91m[*]\e[0m Enter your custom payload to MOTD config file > ' motd_payload
+read -rp $'\033[0;91m[*]\e[0m Enter your custom payload to \033[0;91mMOTD\e[0m config file > ' motd_payload
 if [[ -n $motd_payload ]]; then
     echo -ne "#!/bin/bash\n$motd_payload" >> /etc/update-motd.d/20-pers && \
     chmod +x /etc/update-motd.d/20-pers && \
-    echo -e "${RED}[+]${EOC} Payload ${RED}$motd_payload${EOC} has been successfuly added to ${RED}/etc/update-motd.d/20-pers${EOC}" && \
+    echo -e "${RED}[+]${EOC} Payload ${RED}$motd_payload${EOC} has been ${RED}successfuly${EOC} added to ${RED}/etc/update-motd.d/20-pers${EOC}" && \
     exit 0 || echo -e "\n${RED}[x]${EOC} Something went wrong while adding payload\n";
 else
     echo -e "\n${RED}[x]${EOC} Your payload is ${RED}empty${EOC} or ${RED}/etc/update-motd.d${EOC} not found" && return 0;
