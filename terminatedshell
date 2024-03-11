@@ -1,0 +1,244 @@
+#!/usr/bin/env bash
+
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+# |   Author: https://github.com/anonimidin                                                    |
+# |   Repository: https://github.com/terminatedshell                                           |
+# |   Purpose: To learn basics methods of persistance after exploitation                       |
+# |   License: Apache 2.0 | Check ./LICENSE file or http://www.apache.org/licenses/LICENSE-2.0 |
+# |   How it works: Check general info about functions in ./README.md                          |
+# ──────────────────────────────────────────────────────────────────────────────────────────────
+
+# ----- Global script variables -----
+LC_ALL="en_US.UTF-8" 
+current_shell=$(grep "^$USER:" /etc/passwd | cut -d: -f7)
+random=$(echo $RANDOM | head -c 2)
+
+# --- ANSI colors ---
+BOLD='\033[1m'
+RED='\033[0;91m' # --- Light red ---
+ALERT='\033[1;5;91m' # --- Bold, Blinking & Red ---
+EOC='\033[0m' # --- End of the ANSI color ---
+
+line(){ 
+     printf -- '────────%.0s' \ {1..5}
+}
+
+text_banner="
+ ${RED}    .--.${EOC}
+ ${RED}   |x x |   ╔╦╗${EOC}${BOLD}┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┌┬┐┌─┐┌┬┐${EOC}${RED}╔═╗${EOC}${BOLD}┬ ┬┌─┐┬  ┬  ${EOC}
+ ${RED}   |\_/ |    ║ ${EOC}${BOLD}├┤ ├┬┘│││││││├─┤ │ ├┤  ││${EOC}${RED}╚═╗${EOC}${BOLD}├─┤├┤ │  │  ${EOC}
+ ${RED}  // x \ \   ╩ ${EOC}${BOLD}└─┘┴└─┴ ┴┴┘└┘┴ ┴ ┴ └─┘─┴┘${EOC}${RED}╚═╝${EOC}${BOLD}┴ ┴└─┘┴─┘┴─┘${EOC}
+ ${RED} (|  x  | )       Tool for persistence in linux${EOC}
+ ${RED}/'|_ x _/'\   ${ALERT}Use this script for educational purposes.${EOC}
+ ${RED}\___)=(___/${EOC} "
+
+options="
+\t\t\t${RED}[ - MAIN FUNCTIONS - ]${EOC}
+\t${RED}$(line)${EOC}
+\t${RED}[1]${EOC} ${BOLD}- Manage Users [view|add|delete]                      ${EOC}
+\t$(line)
+\t${RED}[2]${EOC} ${BOLD}- Shell Config [.bashrc|.zshrc]                       ${EOC}
+\t$(line)
+\t${RED}[3]${EOC} ${BOLD}- Scheduler [job|task]                                ${EOC}
+\t$(line)
+\t${RED}[4]${EOC} ${BOLD}- Hooks [apt-get|git]                                 ${EOC}
+\t$(line)
+\t${RED}[5]${EOC} ${BOLD}- Systemd                                             ${EOC}
+\t$(line)
+\t${RED}[6]${EOC} ${BOLD}- Message of the Day                                  ${EOC}
+\t$(line)
+\t${RED}[7]${EOC} ${BOLD}- Malicious Init                                      ${EOC}
+\t$(line)
+\t${RED}[8]${EOC} ${BOLD}- Log [spoof|delete|disable]                        ${EOC}
+\t${RED}$(line)${EOC}
+
+\t\t\t${RED}[ - OTHER FUNCTIONS - ]${EOC}
+\t${RED}$(line)${EOC}
+\t${RED}[ cls | clear ]${EOC} -${BOLD} Clear terminal                          ${EOC}
+\t$(line)
+\t${RED}[ ? | h | help ]${EOC} -${BOLD} Show options                           ${EOC}
+\t$(line)
+\t${RED}[ root ]${EOC} - ${BOLD}Restart with SU privileges                     ${EOC}
+\t$(line)
+\t${RED}[ 0 | q | quit | exit ]${EOC} - ${BOLD}Exit                            ${EOC}
+\t${RED}$(line)${EOC}
+"
+
+# --- Checks for privileges ---
+priv_check(){
+if [[ $EUID != 0 ]]; then
+    echo -e "\n${RED}[!]${EOC} U are NOT running this script with superuser privileges. \n "
+    read -rp $'\033[0;91m[?]\033[0m Are u sure to continiue \033[0;91mwithout\033[0m SU privileges [y/n] > ' priv_choice
+    if [[ "$priv_choice" =~ ^[Yy]|[Yy][Ee][Ss]$ ]]; then 
+        priv_status="not_su"
+        echo -e "\n${RED}[!]${EOC} Many functions will ${RED}NOT${EOC} work probably ${RED}without${EOC} SU." && sleep 0.5
+    elif [[ "$priv_choice" =~ ^[Nn]|[Nn][Oo]$ ]]; then
+        echo -e "\n${RED}[!]${EOC} Exiting... " && sleep 0.5 && exit 0;
+    else [[ -z "$priv_choice" ]];
+        echo -e "\n${RED}[x]${EOC} U didn't choose any option \n${RED}[!]${EOC} Exiting..." && sleep 0.5 && exit 0
+    fi;
+else
+    echo -e "${RED}[!]${EOC} U are running this script with superuser privileges. ${ALERT}Think before u type${EOC}\n "
+    priv_status="is_su"
+fi;
+}
+
+# --- Export vars for child functions ---
+export LC_ALL current_shell random priv_status BOLD RED ALERT EOC
+
+# --- User management [ View | Add | Delete ] --- 
+manage_users() {
+    if . functions/MANAGE_USERS; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}User management${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} ${BOLD}User management${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
+    fi;
+} 
+
+# --- Shell Configuration Persistence File [ bash | zshrc ]  ---
+shell_func(){
+    if . functions/SHELL; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}Shell${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} ${BOLD}Shell${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
+    fi;
+}
+
+# --- Scheduler Persistance [ at | cron ]---
+sched_func(){
+    if . functions/SCHEDULER; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}Scheduler${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} ${BOLD}Scheduler${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
+    fi;
+}
+
+# --- Hooks presistance [ Apt pre-invoke and Git pre-commit ] ---
+hooks_func(){
+    if . functions/HOOKS; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}Hooks${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} ${BOLD}Hooks${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
+    fi;
+}
+
+# --- Systemd persistence [ User/SU level]---
+systemd_func(){
+    if . functions/SYSTEMD; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}Systemd${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} ${BOLD}Systemd${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
+    fi;
+}
+
+# --- MOTD persistence ---  
+motd_func(){
+if [[ $priv_status == "is_su" ]]; then
+    if . functions/MOTD; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}MOTD${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} ${BOLD}MOTD${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
+    fi;
+else
+    echo -e "${RED}[x]${EOC} U cannot edit ${BOLD}MOTD${EOC} file without SU privileges\n" && menu
+fi
+}
+
+# --- Malicious init persistence ---
+malint_func(){
+if [[ "$priv_status" == "is_su" ]]; then
+    if . functions/MALINT; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}MALINT${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} ${BOLD}MALINT${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" menu
+    fi
+else
+    echo -e "${RED}[x]${EOC} U need SU privileges to add malicious init\n" && menu
+    fi
+}
+
+# --- Logs [ spoof | delete & disable ] ---
+logs_func(){
+    if . functions/LOGS; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}LOGS${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} ${BOLD}LOGS${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
+    fi
+}
+
+closing(){ 
+    echo -e "\n\n${RED}[+]${EOC} Closing program..." && \
+    echo -e "\n${RED}[!]${EOC} ${BOLD}Don't forget to check git repo${EOC} (${RED}https://github.com/anonimidin/terminatedshell${EOC})" && \
+    sleep 0.3 && exit 0;
+}
+trap closing SIGINT SIGTSTP
+
+banner() {
+echo -e "$text_banner"
+echo -e "$options"
+
+if (( $(tput cols) < 155 )); then
+    echo -e "${BOLD}${RED}[*]${EOC} Your width of terminal is ${RED}$(tput cols)${EOC}" 
+    echo -e "${BOLD}${RED}[*]${EOC} For best reading performance columns must be ${RED}155+${EOC}\n"
+fi;
+}
+
+# ----- Menu Function -----
+menu(){
+# --- Options ---
+read -rp $'\033[0;91m[*] [TERMINATED_SHELL] >\e[0m ' choice
+    # --- Wait for choice from user ---
+    case $choice in
+    
+    1) sleep 0.5 && echo && manage_users;;
+    2) sleep 0.5 && echo && shell_func;;
+    3) sleep 0.5 && echo && sched_func;;
+    4) sleep 0.5 && echo && hooks_func;;
+    5) sleep 0.5 && echo && systemd_func;;
+    6) sleep 0.5 && echo && motd_func;;
+    7) sleep 0.5 && echo && malint_func;;
+    8) sleep 0.5 && echo && logs_func;;
+    # 10) sleep 0.5 && echo && ;;
+
+    0 | [Qq] | [Qq][Uu][Ii][Tt] | [Ee][Xx][Ii][Tt]) # --- About repo & exit ---
+        if command -v open > /dev/null; then 
+            echo -e "\n${RED}[!]${EOC} ${RED}Help us to improve & spread this script${EOC}\n" && \
+            sleep 1.5 && open https://github.com/anonimidin/terminatedshell &> /dev/null;
+            echo "${RED}[*]${EOC} Redicated to ${RED}project github page${EOC}" || { echo -e "${RED}[x]${EOC} Failed to open github project in your ${RED}default browser${EOC}"; }
+        else
+            sleep 0.5
+            echo -e "${RED}[!]${EOC} ${RED}Help us to improve & spread this script (https://github.com/anonimidin/terminatedshell)${EOC}\n"
+        fi;;
+
+    "?" | [Hh] | [Hh][Ee][Ll][Pp]) # --- Show option based menu ---
+        sleep 0.5 && echo -e "$options" && menu;;
+
+    [Cc][Ll][Ss]|[Cc][Ll][Ee][Aa][Rr]) # --- Clear terminal --- 
+        sleep 0.3 && (clear) && menu ;;
+    
+    [Rr][Oo][Oo][Tt])
+        sleep 1; clear && \
+        echo -e "${RED}[*]${EOC} Restarting script with ${RED}SU privileges${EOC}..." && \
+        exec sudo -s "$current_shell" "$0"; ;;
+
+    *) echo -e "\n${RED}[!]${EOC} ${BOLD}Choose correct option.${EOC}\n" && menu;;
+    esac
+}
+
+# ----- MAIN -----
+if (( $1 )) ; then
+    echo -e "\n${RED}[!] This script doesn't require any arguments${EOC}" && \
+    exit 1;
+else
+    priv_check || { 
+        echo -e "${RED}[x]${EOC} Failed to check ${RED}privilege${EOC} of current user ${RED}${USER}${EOC}" && \
+        exit 1; 
+    }
+    banner || { 
+        echo -e "${RED}[x]${EOC} Failed to display ${RED}banner${EOC}\n";
+    }
+    menu || { 
+        echo -e "${RED}[x]${EOC} Failed to start ${RED}menu${EOC}" && \
+        exit 1; 
+    }
+fi;

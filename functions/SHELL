@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+
+# --- all vars are exported for child functions line:71 --- 
+# shellcheck disable=SC2154
+
+echo -e "${RED}[*]${EOC} Your current shell is ${RED}$current_shell${EOC}\n"
+read -rp $'\033[0;91m[*]\e[0m Enter your custom command > ' shell_command
+# --- Custom shell command based on priv ---
+if [ "$current_shell" == "/bin/bash" ] || [ "$current_shell" == "/usr/bin/bash" ]; then
+    echo "$shell_command" | tee -a ~/.bashrc && echo -e "${RED} $shell_command ${EOC} successfuly added to ${RED}~/.bashrc${EOC} config file" && menu
+elif [ "$current_shell" == "/bin/zsh" ] || [ "$current_shell" == "/usr/bin/zsh" ]; then
+    echo "$shell_command" | tee -a ~/.zshrc && echo -e "${RED}$shell_command ${EOC} successfully added to ${RED}~/.zshrc${EOC} config file" && menu
+else
+    echo -e "\n${RED}[x]${EOC} Cannot identify current shell of ${RED}$USER${EOC} user\n" && menu   
+fi;
