@@ -1,7 +1,8 @@
 <div align="center" id="top">
-  <img src="./.github/banner.png" alt="Terminatedshell" />
+  
+  [![alt text](./.github/banner.png)](./.github/preview.mp4)
 
-  &#xa0;
+&#xa0;
   
 </div>
 
@@ -17,7 +18,7 @@
 
 Terminated Shell script – `Debian` based tool crafted for Linux persistence.
 
-![PREVIEW](./.github/preview.mp4)
+![]()
 
 ## [ DISCLAIMER ] ##
 
