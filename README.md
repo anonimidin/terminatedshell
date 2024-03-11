@@ -111,10 +111,6 @@ Choose your preferred one-liner to download and run the script:
 - **Using curl**
 
 ``` bash
-: << 'END'
-This is a comment
-END
-
 curl -LO https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell && \
 chmod +x terminatedshell functions/* && ./terminatedshell || echo -e "\n[x] Something went wrong\n";
 ```
@@ -133,12 +129,11 @@ git clone https://github.com/anonimidin/terminatedshell.git && cd terminatedshel
 chmod +x terminatedshell functions/* && ./terminatedshell || echo -e "\n[x] Something went wrong\n"; 
 ```
 
-- **Download via wget, install shc (SU privileges required) & compile via shc**
+- **Compile static script via shc**
 
 ```bash
-wget https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell -O terminatedshell && chmod +x terminatedshell functions* && \
-wget https://github.com/neurobin/shc/archive/refs/tags/4.0.3.tar.gz && tar -xvzf 4.0.3.tar.gz && cd shc-4.0.3 && ./configure && make && sudo make install && \
-cd - && shc -U -f terminatedshell -o terminatedshell-bin || echo -e "\n[x] Something went wrong\n"
+if command -v shc; then bash ./static/terminatedshell-compiler.sh terminatedshell-bin; else sudo bash ./statuc
+&& 
 ```
 
 ## [ ADDING YOUR IDEAS ] ##
