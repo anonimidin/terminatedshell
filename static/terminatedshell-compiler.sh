@@ -7,8 +7,8 @@ else
 fi
 
 compile_func() {
-    shc -l "/bin/bash" -U -f terminatedshell-static -o "$output_file" && \
-    echo "[+] - Terminatedshell script compiled into \"$output_file\" SUCCESSFULLY" || { echo -e "\n[x] - Terminatedshell script compiled UNSUCCESSFULLY\n";}
+    shc -l "/bin/bash" -U -f terminatedshell-static -o "$output_file"
+    echo "[+] - Terminatedshell script compiled into \"$output_file\" SUCCESSFULLY" || { echo -e "\n[x] - Terminatedshell script compiled UNSUCCESSFULLY\n";};
 }
 if command -v shc > /dev/null; then
     echo "[+] - SHC command FOUND" && compile_func;

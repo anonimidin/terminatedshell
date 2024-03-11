@@ -159,7 +159,7 @@ else
 
 # --- Logs [ spoof | delete & disable ] ---
 logs_func(){
-    if . /functions/LOGS; then
+    if . functions/LOGS; then
         echo -e "\n${RED}[+]${EOC} ${BOLD}LOGS${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
     else
         echo -e "\n${RED}[x]${EOC} ${BOLD}LOGS${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
@@ -203,8 +203,8 @@ read -rp $'\033[0;91m[*] [TERMINATED_SHELL] >\e[0m ' choice
     0 | [Qq] | [Qq][Uu][Ii][Tt] | [Ee][Xx][Ii][Tt]) # --- About repo & exit ---
         if command -v open > /dev/null; then 
             echo -e "\n${RED}[!]${EOC} ${RED}Help us to improve & spread this script${EOC}\n" && \
-            sleep 1.5 && open https://github.com/anonimidin/terminatedshell &> /dev/null && \
-            echo "${RED}[*]${EOC} Redicated to ${RED}project github page${EOC}" && exit 0 || { echo -e "${RED}[x]${EOC} Failed to open github project in your ${RED}default browser${EOC}"; };
+            sleep 1.5 && open https://github.com/anonimidin/terminatedshell &> /dev/null;
+            echo "${RED}[*]${EOC} Redicated to ${RED}project github page${EOC}" || { echo -e "${RED}[x]${EOC} Failed to open github project in your ${RED}default browser${EOC}"; }
         else
             sleep 0.5
             echo -e "${RED}[!]${EOC} ${RED}Help us to improve & spread this script (https://github.com/anonimidin/terminatedshell)${EOC}\n"
@@ -219,7 +219,7 @@ read -rp $'\033[0;91m[*] [TERMINATED_SHELL] >\e[0m ' choice
     [Rr][Oo][Oo][Tt])
         sleep 1; clear && \
         echo -e "${RED}[*]${EOC} Restarting script with ${RED}SU privileges${EOC}..." && \
-        exec sudo -s $current_shell "$0"; ;;
+        exec sudo -s "$current_shell" "$0"; ;;
 
     *) echo -e "\n${RED}[!]${EOC} ${BOLD}Choose correct option.${EOC}\n" && menu;;
     esac
