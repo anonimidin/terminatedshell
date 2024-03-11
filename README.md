@@ -1,6 +1,6 @@
 <div align="center" id="top">
   
-  [![alt text](./.github/banner.png)](./.github/preview.mp4)
+  [![alt text](./.github/banner.png)](https://github.com/anonimidin/terminatedshell/assets/109206637/83813d8d-de32-4e36-920e-63b97038fbac)
 
 &#xa0;
   
@@ -17,8 +17,6 @@
 ## [ ABOUT ] ##
 
 Terminated Shell script – `Debian` based tool crafted for Linux persistence.
-
-![]()
 
 ## [ DISCLAIMER ] ##
 
@@ -101,7 +99,7 @@ anonip
 One-liner command to install them (SU privileges are required) :
 
 ```bash
-sudo apt-get install at socat systemd cron sudo coreutils/shred -y && sudo apt autoremove -y && \
+sudo apt-get install at socat systemd cron sudo coreutils -y && \
 echo -e "\n[+] All requirements has been installed \n" || echo -e "\n[x] Something went wrong.\n";
 ```
 
