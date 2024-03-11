@@ -31,7 +31,7 @@ case $scheduler_choice in
                 echo "${RED}[x]${EOC} Rolling back to menu" && menu
             fi;
         else
-            echo "${RED}[x]${EOC} At's denied users file are ${RED}not found${EOC} or ${RED}not readable${EOC} for current user - ${RED}($USER)${EOC}"
+            echo "${RED}[x]${EOC} At's denied users file are ${RED}not found${EOC} or ${RED}not readable${EOC} for current user - ${RED}${USER}${EOC}"
         fi;
         read -rp $'\033[0;91m[*]\e[0m Enter IP or domain for basic TCP user custom > ' at_ip
         if [[ -z "$at_ip" ]]; then 
@@ -69,7 +69,7 @@ case $scheduler_choice in
     else
         clear
         echo -e "${RED}[x]${EOC} ${RED}at${EOC} command is ${RED}not install${EOC} on your system "
-        echo -e "${RED}[x]${EOC} U cannot install ${RED}at${EOC} command ${RED}without SU${EOC} priveleges\n " 
+        echo -e "${RED}[x]${EOC} U cannot install ${RED}at${EOC} command ${RED}without SU${EOC} privileges\n " 
         sched_func 
     fi;;
 2) # --- Crontab Persistence func ---
@@ -94,11 +94,11 @@ case $scheduler_choice in
         if [ -w "$cron_stuff_check" ]; then
             echo -e "${RED}[+]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} is ${RED}writeable${EOC}"
         elif [ -f "$cron_stuff_check" ]; then   
-            echo -e "${RED}[x]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} is ${RED}not writeable${EOC} for current logged user ${RED}($USER)${EOC}."
+            echo -e "${RED}[x]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} is ${RED}not writeable${EOC} for current logged user ${RED}${USER}${EOC}."
         elif [ -d "$cron_stuff_check" ]; then
                 continue
         else
-            echo -e "${RED}[x]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} not found or ${RED}permission denied${EOC} for current user ${RED}($USER)${EOC} \n\t"    
+            echo -e "${RED}[x]${EOC} Crontab file or directory - ${RED}$cron_stuff_check${EOC} not found or ${RED}permission denied${EOC} for current user ${RED}${USER}${EOC} \n\t"    
             mkdir -p "$cron_stuff_check" && echo -e "${RED}$cron_stuff_check${EOC} has been ${RED}successufly${EOC} created "
         fi;
     done

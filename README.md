@@ -132,8 +132,7 @@ chmod +x terminatedshell functions/* && ./terminatedshell || echo -e "\n[x] Some
 - **Compile static script via shc**
 
 ```bash
-if command -v shc; then bash ./static/terminatedshell-compiler.sh terminatedshell-bin; else sudo bash ./statuc
-&& 
+bash ./static/terminatedshell-compiler.sh terminatedshell-bin 
 ```
 
 ## [ ADDING YOUR IDEAS ] ##

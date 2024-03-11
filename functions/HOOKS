@@ -16,7 +16,7 @@ case $hook_choice in
     echo -e "${RED}[*]${EOC} Searching for ${RED}.git${EOC} folders in ${RED}/home/${EOC} directories\n"    
     # --- Finding all .git folders of all users & storing them in an array ---
     mapfile -t git_folders < <(find /home/ -type d -name ".git") && \
-    echo -e "\n${RED}[+]${EOC} Found accessable ${RED}.git${EOC} folders for user ${RED}($USER)${EOC}:" # --- Display users founded .git folders ---
+    echo -e "\n${RED}[+]${EOC} Found accessable ${RED}.git${EOC} folders for user ${RED}${USER}${EOC}:" # --- Display users founded .git folders ---
     for ((n_folder=0; n_folder<${#git_folders[@]}; n_folder++)); do
         echo -e "$(line)$(line)"
         echo -e "${RED}[$((n_folder+1))]${EOC} - ${git_folders[$n_folder]}"
@@ -70,9 +70,9 @@ case $hook_choice in
                 echo -e "${RED}[x]${EOC} Payload cannot be empty\n"
             fi
     elif [[ "$git_choice" -eq 2 ]]; then
-        cd "$selected_folder" || { echo "${RED}[x]${EOC} $selected_folder is not accessible for user ($USER) "; hooks; }
+        cd "$selected_folder" || { echo "${RED}[x]${EOC} $selected_folder is not accessible for user ${USER} "; hooks; }
         if [[ -f $(pwd)/config ]] && [[ -w $(pwd)/config ]] && [[ -r $(pwd)/config ]]; then
-            echo -e "${RED}[+]${EOC} Git config file exits for current user ($USER) & have r/w premissions\n"
+            echo -e "${RED}[+]${EOC} Git config file exits for current user ${USER} & have r/w premissions\n"
             read -rp $'\033[0;91m[*]\e[0m Enter your custom payload > ' git_config_payload
             if [[ -n "$git_config_payload" ]]; then
                 git_config_content=$(cat "$(pwd)/config")
@@ -89,7 +89,7 @@ case $hook_choice in
                 echo -e "${RED}[x]${EOC} Payload cannot be empty\n" && hooks
             fi
         else
-            echo -e "${RED}[x]${EOC} Git config file not found or current user ($USER) don't have r/w premissions" && hooks    
+            echo -e "${RED}[x]${EOC} Git config file not found or current user ${USER} don't have r/w premissions" && hooks    
         fi;
         
     else

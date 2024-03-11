@@ -10,7 +10,7 @@ echo -e "${RED}[2]${EOC} - ${RED}Add${EOC} a user"
 echo -e "$(line)"
 echo -e "${RED}[3]${EOC} - ${RED}Delete${EOC} a user"
 echo -e "$(line)"
-echo -e "${RED}[0]${EOC} - ${RED}Return${EOC} to Menu"
+echo -e "${RED}[0]${EOC} - ${RED}Return${EOC} to menu"
 echo -e "${RED}$(line)${EOC}"
 echo 
 read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' user_choice
