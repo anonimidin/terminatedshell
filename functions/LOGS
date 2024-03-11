@@ -15,8 +15,7 @@ while true:
 do
     case $logs_choice in
         1)
-            for $each_file
-            else
+            echo 1;
 
         ;;
         2) echo 2;;

