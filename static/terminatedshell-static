@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 
 # ----- Global script variables -----
 LC_ALL="en_US.UTF-8" 

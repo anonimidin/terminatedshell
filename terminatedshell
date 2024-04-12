@@ -24,16 +24,16 @@ line(){
 }
 
 text_banner="
- ${RED}    .--.${EOC}
- ${RED}   |x x |   ╔╦╗${EOC}${BOLD}┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┌┬┐┌─┐┌┬┐${EOC}${RED}╔═╗${EOC}${BOLD}┬ ┬┌─┐┬  ┬  ${EOC}
- ${RED}   |\_/ |    ║ ${EOC}${BOLD}├┤ ├┬┘│││││││├─┤ │ ├┤  ││${EOC}${RED}╚═╗${EOC}${BOLD}├─┤├┤ │  │  ${EOC}
- ${RED}  // x \ \   ╩ ${EOC}${BOLD}└─┘┴└─┴ ┴┴┘└┘┴ ┴ ┴ └─┘─┴┘${EOC}${RED}╚═╝${EOC}${BOLD}┴ ┴└─┘┴─┘┴─┘${EOC}
- ${RED} (|  x  | )       Tool for persistence in linux${EOC}
- ${RED}/'|_ x _/'\   ${ALERT}Use this script for educational purposes.${EOC}
- ${RED}\___)=(___/${EOC} "
+ ${RED}     .--.${EOC}
+ ${RED}    |x x |   ╔╦╗${EOC}${BOLD}┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┌┬┐┌─┐┌┬┐${EOC}${RED}╔═╗${EOC}${BOLD}┬ ┬┌─┐┬  ┬  ${EOC}
+ ${RED}    |\_/ |    ║ ${EOC}${BOLD}├┤ ├┬┘│││││││├─┤ │ ├┤  ││${EOC}${RED}╚═╗${EOC}${BOLD}├─┤├┤ │  │  ${EOC}
+ ${RED}   // x \ \   ╩ ${EOC}${BOLD}└─┘┴└─┴ ┴┴┘└┘┴ ┴ ┴ └─┘─┴┘${EOC}${RED}╚═╝${EOC}${BOLD}┴ ┴└─┘┴─┘┴─┘${EOC}
+ ${RED}  (|  x  | )       Tool for persistence in linux${EOC}
+ ${RED} /'|_ x _/'\   ${ALERT}Use this script for educational purposes.${EOC}
+ ${RED} \___)=(___/${EOC} "
 
 options="
-\t\t\t${RED}[ - MAIN FUNCTIONS - ]${EOC}
+\t\t${RED}[ - MAIN FUNCTIONS - ]${EOC}
 \t${RED}$(line)${EOC}
 \t${RED}[1]${EOC} ${BOLD}- Manage Users [view|add|delete]                      ${EOC}
 \t$(line)
@@ -52,7 +52,7 @@ options="
 \t${RED}[8]${EOC} ${BOLD}- Log [spoof|delete|disable]                        ${EOC}
 \t${RED}$(line)${EOC}
 
-\t\t\t${RED}[ - OTHER FUNCTIONS - ]${EOC}
+\t\t${RED}[ - OTHER FUNCTIONS - ]${EOC}
 \t${RED}$(line)${EOC}
 \t${RED}[ cls | clear ]${EOC} -${BOLD} Clear terminal                          ${EOC}
 \t$(line)
