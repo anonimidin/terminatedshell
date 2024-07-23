@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# --- all vars are exported in main script line:71 --- 
 
 read -rp $'\033[0;91m[*]\e[0m Enter your custom payload to \033[0;91mMOTD\e[0m config file > ' motd_payload
 if [[ -n $motd_payload ]]; then

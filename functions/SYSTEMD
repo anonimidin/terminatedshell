@@ -6,9 +6,11 @@
 # --- Storing all admin systemd unit paths into "admin_paths" array ---
 mapfile -t admin_units < <(systemd-analyze unit-paths --system) 
 admin_paths=$(printf "${RED}[+]${EOC} %s\n" "${admin_units[@]}")
+
 # --- Storing all user systemd unit paths into "user_paths" array --- 
 mapfile -t user_units < <(systemd-analyze unit-paths --user)
 user_paths=$(printf "${RED}[+]${EOC} %s\n" "${user_units[@]}")
+
 # --- here diff uses process substitution to compare via strings not via temp files(diff -y a.txt b.txt) ---
 echo -e "\tSystem units paths\t\t\t\t\t\tUsers units paths " && diff -y <(echo "$admin_paths") <(echo "$user_paths") 
 

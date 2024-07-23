@@ -4,10 +4,12 @@
 # shellcheck disable=SC2154
 
 echo -e "${RED}$(line)${EOC}"
-echo -e "[1] Git hooks & config"
+echo -e "${RED}[1]${EOC} - Git hooks & config"
 echo -e "$(line)"
-echo -e "[2] Apt-get hooks"
-echo -e "${RED}$(line)${EOC}\n"
+echo -e "${RED}[2]${EOC} - Apt-get hooks"
+echo -e "$(line)"
+echo -e "${RED}[0]${EOC} - ${RED}Return${EOC} to menu"
+echo -e "${RED}$(line)${EOC}"
 
 read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' hook_choice
 case $hook_choice in
@@ -111,6 +113,8 @@ case $hook_choice in
         echo -e "${RED}[x]${EOC} U need SU privileges to add custom payload to apt-get pre-invoke\n" && \
         hooks
     fi;;
+0)
+    sleep 0.5 && return 0;;
 *)
     echo -e "${RED}[x]${EOC} Invalid option\n" && hooks;;
 esac

@@ -3,6 +3,7 @@
 # --- Function to log messages ---
 log() {
     local msg=$1
+    # shellcheck disable=SC2155
     local timestamp=$(date +"%Y-%m-%d %H:%M:%S")
     echo "[$timestamp] - $msg" >> compiler_log.txt
 }
@@ -63,13 +64,13 @@ else
         echo "[+] - Installing SHC version 4.0.3"
         
         if wget https://github.com/neurobin/shc/archive/refs/tags/4.0.3.tar.gz && \
-           tar -xvzf 4.0.3.tar.gz && \
-           cd shc-4.0.3 && \
-           ./configure && make && sudo make install && cd -; then
-            log "SHC version 4.0.3 installed successfully."
-            echo "[*] - SHC version 4.0.3 installed successfully."
-            echo "[*] - Compiling..."
-            compile_func
+            tar -xvzf 4.0.3.tar.gz && \
+            cd shc-4.0.3 && \
+            ./configure && make && sudo make install && cd -; then
+                log "SHC version 4.0.3 installed successfully."
+                echo "[*] - SHC version 4.0.3 installed successfully."
+                echo "[*] - Compiling..."
+                compile_func
         else
             h_error "Failed to install SHC version 4.0.3"
         fi
@@ -77,4 +78,3 @@ else
         h_error "You need SU privileges to install SHC."
     fi
 fi
-

