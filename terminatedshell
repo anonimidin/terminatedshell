@@ -63,11 +63,7 @@ options="
 \t${RED}[7]${EOC} ${BOLD}- Log [spoof|delete|disable]                          ${EOC}
 \t${RED}$(line)${EOC}
 
-<<<<<<< HEAD
 \t\t${RED}[ - COMMANDS - ]${EOC}
-=======
-\t\t${RED}[ - OTHER FUNCTIONS - ]${EOC}
->>>>>>> refs/remotes/origin/main
 \t${RED}$(line)${EOC}
 \t${RED}[ cls | clear ]${EOC} -${BOLD} Clear terminal                          ${EOC}
 \t$(line)

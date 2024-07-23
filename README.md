@@ -96,11 +96,7 @@ rlwrap
 One-liner command to install them (SU privileges are required) :
 
 ```bash
-<<<<<<< HEAD
 sudo apt-get install systemd cron sudo coreutils rlwrap -y && \
-=======
-sudo apt install at socat systemd cron sudo coreutils -y && \
->>>>>>> refs/remotes/origin/main
 echo -e "\n[+] All requirements has been installed \n" || echo -e "\n[x] Something went wrong.\n";
 ```
 
@@ -110,28 +106,16 @@ Choose your preferred one-liner to download and run the script:
 
 - **Using curl**
 
-<<<<<<< HEAD
-```sh
-curl -LO https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell && \
-chmod +x terminatedshell functions/* && ./terminatedshell || echo -e "\n[x] Something went wrong\n";
-=======
 ``` bash
 curl -LO https://github.com/anonimidin/terminatedshell/blob/main/static/terminatedshell-static && \
 chmod +x terminatedshell-static && ./terminatedshell-static || echo -e "\n[x] Something went wrong\n";
->>>>>>> refs/remotes/origin/main
 ```
 
 - **Using wget**
 
-<<<<<<< HEAD
 ```sh
 wget https://github.com/anonimidin/terminatedshell/raw/main/terminatedshell -O terminatedshell && \
 chmod +x terminatedshell functions/* && ./terminatedshell || echo -e "\n[x] Something went wrong\n";
-=======
-``` bash
-wget https://github.com/anonimidin/terminatedshell/blob/main/static/terminatedshell-static -O terminatedshell-static && \
-chmod +x terminatedshell-static && ./terminatedshell-static || echo -e "\n[x] Something went wrong\n";
->>>>>>> refs/remotes/origin/main
 ```
 
 - **Using git**
@@ -143,13 +127,8 @@ chmod +x terminatedshell functions/* && ./terminatedshell || echo -e "\n[x] Some
 
 - **Compile static script via shc**
 
-<<<<<<< HEAD
 ```sh
 bash ./static/terminatedshell-compiler.sh terminatedshell-bin 
-=======
-```bash
-bash ./static/terminatedshell-compiler.sh terminatedshell-compiled
->>>>>>> refs/remotes/origin/main
 ```
 
 ### [ ADDING YOUR IDEAS ]
